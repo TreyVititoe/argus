@@ -1,12 +1,19 @@
 "use client";
 
 import { useEffect } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 const NAV_ITEMS = [
-  { label: "Dashboard", icon: "dashboard", active: true },
-  { label: "Discovery", icon: "explore", active: false },
-  { label: "Companies", icon: "business", active: false },
-  { label: "Analytics", icon: "monitoring", active: false },
+  { label: "Dashboard", icon: "dashboard", href: "/" },
+  { label: "Discovery", icon: "explore", href: "/discovery" },
+  { label: "Companies", icon: "business", href: "/companies" },
+  { label: "Analytics", icon: "monitoring", href: "/analytics" },
+];
+
+const BOTTOM_ITEMS = [
+  { label: "Settings", icon: "settings", href: "/settings" },
+  { label: "Help", icon: "help_outline", href: "/help" },
 ];
 
 interface SidebarProps {
@@ -15,7 +22,8 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ open, onClose }: SidebarProps) {
-  // Prevent body scroll when mobile drawer is open
+  const pathname = usePathname();
+
   useEffect(() => {
     if (open) {
       document.body.style.overflow = "hidden";
@@ -27,9 +35,13 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
     };
   }, [open]);
 
+  const isActive = (href: string) => {
+    if (href === "/") return pathname === "/";
+    return pathname.startsWith(href);
+  };
+
   return (
     <>
-      {/* Mobile backdrop */}
       {open && (
         <div
           onClick={onClose}
@@ -44,7 +56,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
         aria-hidden={!open}
       >
         <div className="px-6 mb-10 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <Link href="/" onClick={onClose} className="flex items-center gap-3">
             <div className="w-8 h-8 bg-secondary rounded-xl flex items-center justify-center">
               <span
                 className="material-symbols-outlined text-white"
@@ -61,7 +73,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
                 Intelligence Suite
               </p>
             </div>
-          </div>
+          </Link>
           <button
             onClick={onClose}
             className="lg:hidden text-slate-400 hover:text-white p-1"
@@ -74,54 +86,61 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
         </div>
 
         <nav className="flex-1 px-4">
-          {NAV_ITEMS.map((item) => (
-            <a
-              key={item.label}
-              href="#"
-              onClick={onClose}
-              className={`${
-                item.active
-                  ? "nav-active text-white rounded-r-full"
-                  : "text-slate-400 hover:text-white hover:bg-[#1a2b3c]"
-              } py-3 px-6 my-1 flex items-center gap-3 font-body text-sm font-medium transition-all duration-300`}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: "20px" }}>
-                {item.icon}
-              </span>
-              {item.label}
-            </a>
-          ))}
+          {NAV_ITEMS.map((item) => {
+            const active = isActive(item.href);
+            return (
+              <Link
+                key={item.label}
+                href={item.href}
+                onClick={onClose}
+                className={`${
+                  active
+                    ? "nav-active text-white rounded-r-full"
+                    : "text-slate-400 hover:text-white hover:bg-[#1a2b3c]"
+                } py-3 px-6 my-1 flex items-center gap-3 font-body text-sm font-medium transition-all duration-300`}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: "20px" }}>
+                  {item.icon}
+                </span>
+                {item.label}
+              </Link>
+            );
+          })}
 
           <div className="mt-8 px-2">
-            <button className="w-full bg-gradient-to-br from-secondary to-primary-container text-white py-3 px-4 rounded-xl text-sm font-bold shadow-lg hover:brightness-110 transition-all flex items-center justify-center gap-2">
+            <Link
+              href="/discovery"
+              onClick={onClose}
+              className="w-full bg-gradient-to-br from-secondary to-primary-container text-white py-3 px-4 rounded-xl text-sm font-bold shadow-lg hover:brightness-110 transition-all flex items-center justify-center gap-2"
+            >
               <span className="material-symbols-outlined" style={{ fontSize: "16px" }}>
                 add_circle
               </span>
               New Analysis
-            </button>
+            </Link>
           </div>
         </nav>
 
         <div className="px-4 mt-auto">
           <div className="bg-[#1a2b3c] h-[1px] w-full mb-4" />
-          <a
-            href="#"
-            className="text-slate-400 hover:text-white py-3 px-6 my-1 flex items-center gap-3 font-body text-sm font-medium transition-all"
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: "20px" }}>
-              settings
-            </span>
-            Settings
-          </a>
-          <a
-            href="#"
-            className="text-slate-400 hover:text-white py-3 px-6 my-1 flex items-center gap-3 font-body text-sm font-medium transition-all"
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: "20px" }}>
-              help_outline
-            </span>
-            Help
-          </a>
+          {BOTTOM_ITEMS.map((item) => {
+            const active = isActive(item.href);
+            return (
+              <Link
+                key={item.label}
+                href={item.href}
+                onClick={onClose}
+                className={`${
+                  active ? "text-white bg-[#1a2b3c]" : "text-slate-400 hover:text-white"
+                } py-3 px-6 my-1 flex items-center gap-3 font-body text-sm font-medium transition-all rounded-lg`}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: "20px" }}>
+                  {item.icon}
+                </span>
+                {item.label}
+              </Link>
+            );
+          })}
         </div>
       </aside>
     </>

@@ -8,8 +8,7 @@ import {
   formatCurrency,
 } from "@/lib/data-utils";
 import rawData from "@/lib/data.json";
-import Sidebar from "./Sidebar";
-import TopAppBar from "./TopAppBar";
+import AppShell from "./AppShell";
 import KpiStat from "./KpiStat";
 import SpendTrendChart from "./SpendTrendChart";
 import InsightPanel from "./InsightPanel";
@@ -24,7 +23,6 @@ const allStates = rawData.states as StateInfo[];
 
 export default function Dashboard() {
   const [search, setSearch] = useState("");
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedState, setSelectedState] = useState<string>("ALL");
   const [selectedRegion, setSelectedRegion] = useState<Region | "all">("all");
   const [opportunityFilter, setOpportunityFilter] = useState<"all" | "expiring" | "active" | "dormant">("all");
@@ -119,16 +117,8 @@ export default function Dashboard() {
   }, [filteredTransactions]);
 
   return (
-    <>
-      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      <main className="lg:ml-64 min-h-screen pb-12">
-        <TopAppBar
-          search={search}
-          onSearchChange={setSearch}
-          onMenuClick={() => setSidebarOpen(true)}
-        />
-
-        <section className="px-4 md:px-8 py-6 md:py-8 max-w-[1440px] mx-auto">
+    <AppShell search={search} onSearchChange={setSearch}>
+      <section className="px-4 md:px-8 py-6 md:py-8 max-w-[1440px] mx-auto">
           <div className="mb-4">
             <span className="text-secondary font-bold text-xs uppercase tracking-widest block mb-1">
               Market Overview
@@ -260,8 +250,7 @@ export default function Dashboard() {
               onFilterChange={setOpportunityFilter}
             />
           </div>
-        </section>
-      </main>
-    </>
+      </section>
+    </AppShell>
   );
 }
