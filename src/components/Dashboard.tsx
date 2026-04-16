@@ -80,7 +80,7 @@ export default function Dashboard() {
   return (
     <>
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      <main className="md:ml-64 min-h-screen pb-12">
+      <main className="lg:ml-64 min-h-screen pb-12">
         <TopAppBar
           search={search}
           onSearchChange={setSearch}

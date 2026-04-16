@@ -96,6 +96,19 @@ body {
   filter: drop-shadow(0px 4px 8px rgba(37, 82, 202, 0.3));
 }
 
+/* Sidebar drawer — rock-solid mobile behavior */
+.sidebar-drawer {
+  transform: translateX(-100%);
+}
+.sidebar-drawer[data-open="true"] {
+  transform: translateX(0);
+}
+@media (min-width: 1024px) {
+  .sidebar-drawer {
+    transform: translateX(0) !important;
+  }
+}
+
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;

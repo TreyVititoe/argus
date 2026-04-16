@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect } from "react";
+
 const NAV_ITEMS = [
   { label: "Dashboard", icon: "dashboard", active: true },
   { label: "Discovery", icon: "explore", active: false },
@@ -13,19 +15,33 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ open, onClose }: SidebarProps) {
+  // Prevent body scroll when mobile drawer is open
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [open]);
+
   return (
     <>
-      <div
-        onClick={onClose}
-        className={`md:hidden fixed inset-0 z-40 bg-primary/50 backdrop-blur-sm transition-opacity ${
-          open ? "opacity-100" : "opacity-0 pointer-events-none"
-        }`}
-      />
+      {/* Mobile backdrop */}
+      {open && (
+        <div
+          onClick={onClose}
+          className="lg:hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
+          aria-hidden="true"
+        />
+      )}
 
       <aside
-        className={`fixed left-0 top-0 h-screen flex flex-col py-8 z-50 bg-[#041627] w-64 shadow-2xl transition-transform duration-300 ${
-          open ? "translate-x-0" : "-translate-x-full"
-        } md:translate-x-0`}
+        className="sidebar-drawer fixed left-0 top-0 h-screen flex flex-col py-8 z-50 bg-[#041627] w-64 shadow-2xl transition-transform duration-300"
+        data-open={open}
+        aria-hidden={!open}
       >
         <div className="px-6 mb-10 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -48,7 +64,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
           </div>
           <button
             onClick={onClose}
-            className="md:hidden text-slate-400 hover:text-white p-1"
+            className="lg:hidden text-slate-400 hover:text-white p-1"
             aria-label="Close sidebar"
           >
             <span className="material-symbols-outlined" style={{ fontSize: "22px" }}>

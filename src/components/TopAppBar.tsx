@@ -13,7 +13,7 @@ export default function TopAppBar({ search, onSearchChange, onMenuClick }: TopAp
         <div className="flex items-center gap-3 md:gap-6 min-w-0 flex-1">
           <button
             onClick={onMenuClick}
-            className="md:hidden p-2 rounded-full hover:bg-[#eff4ff] shrink-0"
+            className="lg:hidden p-2 rounded-full hover:bg-[#eff4ff] shrink-0"
             aria-label="Open menu"
           >
             <span className="material-symbols-outlined text-on-surface" style={{ fontSize: "22px" }}>
