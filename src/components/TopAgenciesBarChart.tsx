@@ -19,7 +19,7 @@ export default function TopAgenciesBarChart({ agencies }: { agencies: AgencySumm
   };
 
   return (
-    <div className="col-span-12 lg:col-span-7 bg-surface-container-lowest p-6 rounded-xl shadow-sm">
+    <div className="col-span-12 lg:col-span-7 bg-surface-container-lowest p-4 md:p-6 rounded-xl shadow-sm">
       <div className="mb-6">
         <h4 className="text-lg font-headline font-bold text-primary">Spending by Agency</h4>
         <p className="text-xs text-on-surface-variant">Top 5 spending agencies</p>

@@ -21,6 +21,7 @@ const allTransactions = rawData.transactions as Transaction[];
 
 export default function Dashboard() {
   const [search, setSearch] = useState("");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const filteredTransactions = useMemo(() => {
     if (!search.trim()) return allTransactions;
@@ -78,22 +79,26 @@ export default function Dashboard() {
 
   return (
     <>
-      <Sidebar />
-      <main className="ml-64 min-h-screen pb-12">
-        <TopAppBar search={search} onSearchChange={setSearch} />
+      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <main className="md:ml-64 min-h-screen pb-12">
+        <TopAppBar
+          search={search}
+          onSearchChange={setSearch}
+          onMenuClick={() => setSidebarOpen(true)}
+        />
 
-        <section className="px-8 py-8 max-w-[1440px] mx-auto">
+        <section className="px-4 md:px-8 py-6 md:py-8 max-w-[1440px] mx-auto">
           <div className="mb-6">
             <span className="text-secondary font-bold text-xs uppercase tracking-widest block mb-1">
               Market Overview
             </span>
-            <h3 className="text-3xl font-headline font-extrabold text-primary tracking-tight">
+            <h3 className="text-2xl md:text-3xl font-headline font-extrabold text-primary tracking-tight">
               Executive Dashboard
             </h3>
           </div>
 
           {/* KPI Row */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4 mb-6 md:mb-8">
             <KpiStat
               label="Total Contract Value"
               value={formatCurrency(totalSpend)}
@@ -133,7 +138,7 @@ export default function Dashboard() {
           </div>
 
           {/* Spend Trend + Insight */}
-          <div className="grid grid-cols-12 gap-6 mb-8">
+          <div className="grid grid-cols-12 gap-4 md:gap-6 mb-6 md:mb-8">
             <SpendTrendChart transactions={filteredTransactions} />
             <InsightPanel
               expiringCount={expiringStats.count}
@@ -142,7 +147,7 @@ export default function Dashboard() {
           </div>
 
           {/* Bar + Radar */}
-          <div className="grid grid-cols-12 gap-6 mb-8">
+          <div className="grid grid-cols-12 gap-4 md:gap-6 mb-6 md:mb-8">
             <TopAgenciesBarChart agencies={allAgencies} />
             <CompetitorRadar transactions={filteredTransactions} />
           </div>

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Manrope, Inter } from "next/font/google";
 import "./globals.css";
 
@@ -17,6 +17,12 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Argus — Procurement Intelligence",
   description: "See every expiring contract. Sales targeting dashboard for public sector procurement data.",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#041627",
 };
 
 export default function RootLayout({

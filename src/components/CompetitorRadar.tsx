@@ -27,7 +27,7 @@ export default function CompetitorRadar({ transactions }: { transactions: Transa
   }, [transactions]);
 
   return (
-    <div className="col-span-12 lg:col-span-5 bg-surface-container-lowest p-6 rounded-xl shadow-sm">
+    <div className="col-span-12 lg:col-span-5 bg-surface-container-lowest p-4 md:p-6 rounded-xl shadow-sm">
       <div className="mb-4">
         <h4 className="text-lg font-headline font-bold text-primary">Competitor Footprint</h4>
         <p className="text-xs text-on-surface-variant">Spend share by product keyword (normalized)</p>

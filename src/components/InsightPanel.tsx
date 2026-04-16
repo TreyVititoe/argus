@@ -9,7 +9,7 @@ interface InsightPanelProps {
 
 export default function InsightPanel({ expiringCount, expiringValue }: InsightPanelProps) {
   return (
-    <div className="col-span-12 lg:col-span-4 bg-primary text-white p-6 rounded-xl shadow-lg relative overflow-hidden flex flex-col justify-between">
+    <div className="col-span-12 lg:col-span-4 bg-primary text-white p-5 md:p-6 rounded-xl shadow-lg relative overflow-hidden flex flex-col justify-between min-h-[220px]">
       <div className="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 bg-secondary/10 rounded-full blur-2xl" />
       <div className="relative z-10">
         <span className="text-tertiary-fixed text-[10px] font-bold uppercase border border-tertiary-fixed/30 rounded px-1.5 py-0.5 mb-4 inline-block tracking-wider">
