@@ -5,6 +5,7 @@ export interface Transaction {
   year: number;
   agency: string;
   state: string;
+  stateCode: string;
   type: string;
   company: string;
   description: string;
@@ -12,6 +13,12 @@ export interface Transaction {
   unitPrice: number;
   totalPrice: number;
   priceRange: string;
+}
+
+export interface StateInfo {
+  code: string;
+  name: string;
+  transactionCount: number;
 }
 
 export type ContractStatus = "active" | "expiring" | "dormant";

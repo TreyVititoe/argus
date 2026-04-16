@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Transaction } from "@/lib/types";
+import { Transaction, StateInfo } from "@/lib/types";
 import {
   summarizeByAgency,
   summarizeByCompany,
@@ -16,23 +16,30 @@ import InsightPanel from "./InsightPanel";
 import TopAgenciesBarChart from "./TopAgenciesBarChart";
 import CompetitorRadar from "./CompetitorRadar";
 import OpportunityTable from "./OpportunityTable";
+import StateTabs from "./StateTabs";
 
 const allTransactions = rawData.transactions as Transaction[];
+const allStates = rawData.states as StateInfo[];
 
 export default function Dashboard() {
   const [search, setSearch] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [selectedState, setSelectedState] = useState<string>("ALL");
 
   const filteredTransactions = useMemo(() => {
-    if (!search.trim()) return allTransactions;
+    let base = allTransactions;
+    if (selectedState !== "ALL") {
+      base = base.filter((t) => t.stateCode === selectedState);
+    }
+    if (!search.trim()) return base;
     const q = search.toLowerCase();
-    return allTransactions.filter(
+    return base.filter(
       (t) =>
         t.agency.toLowerCase().includes(q) ||
         t.company.toLowerCase().includes(q) ||
         t.keyword.toLowerCase().includes(q)
     );
-  }, [search]);
+  }, [search, selectedState]);
 
   const allAgencies = useMemo(() => summarizeByAgency(filteredTransactions), [filteredTransactions]);
   const allCompanies = useMemo(() => summarizeByCompany(filteredTransactions), [filteredTransactions]);
@@ -88,13 +95,30 @@ export default function Dashboard() {
         />
 
         <section className="px-4 md:px-8 py-6 md:py-8 max-w-[1440px] mx-auto">
-          <div className="mb-6">
+          <div className="mb-4">
             <span className="text-secondary font-bold text-xs uppercase tracking-widest block mb-1">
               Market Overview
             </span>
-            <h3 className="text-2xl md:text-3xl font-headline font-extrabold text-primary tracking-tight">
-              Executive Dashboard
-            </h3>
+            <div className="flex items-baseline justify-between flex-wrap gap-2">
+              <h3 className="text-2xl md:text-3xl font-headline font-extrabold text-primary tracking-tight">
+                Executive Dashboard
+              </h3>
+              <span className="text-xs text-on-surface-variant">
+                {selectedState === "ALL"
+                  ? `${allStates.length} states \u00B7 ${allTransactions.length.toLocaleString()} transactions`
+                  : `${allStates.find((s) => s.code === selectedState)?.name || selectedState}`}
+              </span>
+            </div>
+          </div>
+
+          {/* State Tabs */}
+          <div className="mb-6">
+            <StateTabs
+              states={allStates}
+              selected={selectedState}
+              onSelect={setSelectedState}
+              total={allTransactions.length}
+            />
           </div>
 
           {/* KPI Row */}
