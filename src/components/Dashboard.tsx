@@ -17,6 +17,7 @@ import TopAgenciesBarChart from "./TopAgenciesBarChart";
 import CompetitorRadar from "./CompetitorRadar";
 import OpportunityTable from "./OpportunityTable";
 import StateTabs from "./StateTabs";
+import { getRegion, FL_REGIONS, Region } from "@/lib/regions";
 
 const allTransactions = rawData.transactions as Transaction[];
 const allStates = rawData.states as StateInfo[];
@@ -25,11 +26,15 @@ export default function Dashboard() {
   const [search, setSearch] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedState, setSelectedState] = useState<string>("ALL");
+  const [selectedRegion, setSelectedRegion] = useState<Region | "all">("all");
 
   const filteredTransactions = useMemo(() => {
     let base = allTransactions;
     if (selectedState !== "ALL") {
       base = base.filter((t) => t.stateCode === selectedState);
+    }
+    if (selectedState === "FL" && selectedRegion !== "all") {
+      base = base.filter((t) => getRegion(t.agency, t.stateCode) === selectedRegion);
     }
     if (!search.trim()) return base;
     const q = search.toLowerCase();
@@ -39,7 +44,27 @@ export default function Dashboard() {
         t.company.toLowerCase().includes(q) ||
         t.keyword.toLowerCase().includes(q)
     );
-  }, [search, selectedState]);
+  }, [search, selectedState, selectedRegion]);
+
+  // Reset region filter when switching states
+  const handleStateChange = (code: string) => {
+    setSelectedState(code);
+    setSelectedRegion("all");
+  };
+
+  // Region breakdown for FL (count of transactions per region)
+  const flRegionCounts = useMemo(() => {
+    if (selectedState !== "FL") return null;
+    const counts: Record<string, number> = { "all": 0 };
+    for (const r of FL_REGIONS) counts[r] = 0;
+    const flTx = allTransactions.filter((t) => t.stateCode === "FL");
+    counts["all"] = flTx.length;
+    for (const t of flTx) {
+      const r = getRegion(t.agency, t.stateCode);
+      if (r) counts[r] = (counts[r] || 0) + 1;
+    }
+    return counts;
+  }, [selectedState]);
 
   const allAgencies = useMemo(() => summarizeByAgency(filteredTransactions), [filteredTransactions]);
   const allCompanies = useMemo(() => summarizeByCompany(filteredTransactions), [filteredTransactions]);
@@ -112,14 +137,54 @@ export default function Dashboard() {
           </div>
 
           {/* State Tabs */}
-          <div className="mb-6">
+          <div className="mb-3">
             <StateTabs
               states={allStates}
               selected={selectedState}
-              onSelect={setSelectedState}
+              onSelect={handleStateChange}
               total={allTransactions.length}
             />
           </div>
+
+          {/* Florida Region Filter */}
+          {selectedState === "FL" && flRegionCounts && (
+            <div className="mb-6 flex items-center gap-1 md:gap-2 overflow-x-auto pb-2">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant shrink-0 mr-2">
+                Region:
+              </span>
+              <button
+                onClick={() => setSelectedRegion("all")}
+                className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                  selectedRegion === "all"
+                    ? "bg-on-tertiary-container text-white"
+                    : "bg-surface-container-lowest text-on-surface-variant hover:bg-surface-container-high"
+                }`}
+              >
+                All FL
+                <span className={`ml-1.5 text-[10px] ${selectedRegion === "all" ? "text-white/70" : "opacity-60"}`}>
+                  {flRegionCounts["all"].toLocaleString()}
+                </span>
+              </button>
+              {FL_REGIONS.map((r) => (
+                <button
+                  key={r}
+                  onClick={() => setSelectedRegion(r)}
+                  className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                    selectedRegion === r
+                      ? "bg-on-tertiary-container text-white"
+                      : "bg-surface-container-lowest text-on-surface-variant hover:bg-surface-container-high"
+                  }`}
+                >
+                  {r}
+                  <span className={`ml-1.5 text-[10px] ${selectedRegion === r ? "text-white/70" : "opacity-60"}`}>
+                    {(flRegionCounts[r] || 0).toLocaleString()}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {selectedState !== "FL" && <div className="mb-6" />}
 
           {/* KPI Row */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4 mb-6 md:mb-8">
