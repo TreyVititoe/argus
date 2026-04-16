@@ -1,10 +1,15 @@
 "use client";
 
-import { AgencySummary } from "@/lib/types";
+import { useState, forwardRef, useMemo } from "react";
+import { AgencySummary, ContractStatus } from "@/lib/types";
 import { formatCurrency, CURRENT_YEAR } from "@/lib/data-utils";
+
+type FilterMode = "all" | "expiring" | "active" | "dormant";
 
 interface OpportunityTableProps {
   agencies: AgencySummary[];
+  filter: FilterMode;
+  onFilterChange: (f: FilterMode) => void;
 }
 
 function confidenceLevel(opportunityScore: number, maxScore: number) {
@@ -15,21 +20,22 @@ function confidenceLevel(opportunityScore: number, maxScore: number) {
   return { label: `Low (${pct}%)`, style: "text-on-error-container bg-error-container/30" };
 }
 
-function statusBadge(status: AgencySummary["contractStatus"]) {
+function statusBadge(status: ContractStatus) {
   if (status === "expiring")
     return (
-      <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-tertiary-fixed-dim/20 text-on-tertiary-container uppercase">
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold bg-tertiary-fixed-dim/20 text-on-tertiary-container uppercase whitespace-nowrap">
+        <span className="h-1.5 w-1.5 rounded-full bg-on-tertiary-container animate-pulse" />
         Renewal
       </span>
     );
   if (status === "active")
     return (
-      <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-secondary-fixed/50 text-secondary uppercase">
+      <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-secondary-fixed/50 text-secondary uppercase whitespace-nowrap">
         Active
       </span>
     );
   return (
-    <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-surface-container-high text-on-surface-variant uppercase">
+    <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-surface-container-high text-on-surface-variant uppercase whitespace-nowrap">
       Dormant
     </span>
   );
@@ -41,33 +47,89 @@ function initials(name: string) {
   return (caps.slice(0, 2).join("") || name.slice(0, 2)).toUpperCase();
 }
 
-export default function OpportunityTable({ agencies }: OpportunityTableProps) {
-  // Prioritize expiring contracts at the top
-  const sorted = [...agencies].sort((a, b) => {
-    if (a.contractStatus === "expiring" && b.contractStatus !== "expiring") return -1;
-    if (b.contractStatus === "expiring" && a.contractStatus !== "expiring") return 1;
-    return b.opportunityScore - a.opportunityScore || b.totalSpend - a.totalSpend;
-  });
+const FILTERS: { mode: FilterMode; label: string }[] = [
+  { mode: "all", label: "All" },
+  { mode: "expiring", label: "Renewal Window" },
+  { mode: "active", label: "Active" },
+  { mode: "dormant", label: "Dormant" },
+];
 
-  const maxScore = Math.max(...sorted.map((a) => a.opportunityScore), 1);
-  const maxSpend = Math.max(...sorted.map((a) => a.totalSpend), 1);
+const OpportunityTable = forwardRef<HTMLDivElement, OpportunityTableProps>(function OpportunityTable(
+  { agencies, filter, onFilterChange },
+  ref
+) {
+  const [expanded, setExpanded] = useState<string | null>(null);
+  const [showAll, setShowAll] = useState(false);
+
+  const filtered = useMemo(() => {
+    let result = [...agencies];
+    if (filter !== "all") {
+      result = result.filter((a) => a.contractStatus === filter);
+    }
+    // Sort: expiring first, then by opportunity score / spend
+    result.sort((a, b) => {
+      if (filter === "all") {
+        if (a.contractStatus === "expiring" && b.contractStatus !== "expiring") return -1;
+        if (b.contractStatus === "expiring" && a.contractStatus !== "expiring") return 1;
+      }
+      return b.opportunityScore - a.opportunityScore || b.totalSpend - a.totalSpend;
+    });
+    return result;
+  }, [agencies, filter]);
+
+  const counts = useMemo(() => {
+    const c = { all: agencies.length, expiring: 0, active: 0, dormant: 0 };
+    for (const a of agencies) c[a.contractStatus]++;
+    return c;
+  }, [agencies]);
+
+  const maxScore = Math.max(...filtered.map((a) => a.opportunityScore), 1);
+  const maxSpend = Math.max(...filtered.map((a) => a.totalSpend), 1);
+
+  const displayed = showAll ? filtered : filtered.slice(0, 50);
+  const hasMore = filtered.length > 50;
 
   return (
-    <div className="col-span-12 bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
-      <div className="px-4 md:px-6 py-4 flex items-center justify-between bg-surface-container-low/30 border-b border-surface-container gap-3">
+    <div
+      ref={ref}
+      id="opportunities"
+      className="col-span-12 bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden scroll-mt-20"
+    >
+      <div className="px-4 md:px-6 py-4 bg-surface-container-low/30 border-b border-surface-container gap-3 flex flex-col lg:flex-row lg:items-center lg:justify-between">
         <div className="min-w-0">
           <h4 className="text-base md:text-lg font-headline font-bold text-primary">Top Opportunities</h4>
           <p className="text-[11px] md:text-xs text-on-surface-variant">
-            Expiring contracts surface first.
+            {filter === "expiring"
+              ? `${filtered.length} agencies in the renewal window — prime targets for outreach`
+              : filter === "active"
+              ? `${filtered.length} active accounts`
+              : filter === "dormant"
+              ? `${filtered.length} dormant accounts (may need re-engagement)`
+              : "Expiring contracts surface first, then by opportunity score"}
           </p>
         </div>
-        <button className="text-secondary font-bold text-[11px] md:text-xs flex items-center gap-1 hover:underline shrink-0">
-          <span className="hidden sm:inline">View Detailed Pipeline</span>
-          <span className="sm:hidden">View all</span>
-          <span className="material-symbols-outlined" style={{ fontSize: "14px" }}>
-            arrow_forward
-          </span>
-        </button>
+
+        {/* Filter pills */}
+        <div className="flex items-center gap-1 overflow-x-auto shrink-0">
+          {FILTERS.map((f) => (
+            <button
+              key={f.mode}
+              onClick={() => onFilterChange(f.mode)}
+              className={`shrink-0 px-2.5 py-1 rounded-full text-[11px] font-bold transition-all whitespace-nowrap ${
+                filter === f.mode
+                  ? f.mode === "expiring"
+                    ? "bg-on-tertiary-container text-white"
+                    : "bg-primary text-white"
+                  : "bg-surface-container text-on-surface-variant hover:bg-surface-container-high"
+              }`}
+            >
+              {f.label}
+              <span className={`ml-1 text-[10px] font-medium ${filter === f.mode ? "text-white/70" : "opacity-60"}`}>
+                {counts[f.mode]}
+              </span>
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
@@ -81,78 +143,159 @@ export default function OpportunityTable({ agencies }: OpportunityTableProps) {
               <th className="px-4 md:px-6 py-3 hidden xl:table-cell">Est. Renewal</th>
               <th className="px-4 md:px-6 py-3 hidden md:table-cell">Lead Score</th>
               <th className="px-4 md:px-6 py-3">Status</th>
-              <th className="px-4 md:px-6 py-3 text-right hidden sm:table-cell">Action</th>
+              <th className="px-4 md:px-6 py-3 text-right w-12" />
             </tr>
           </thead>
           <tbody className="divide-y divide-surface-container/30">
-            {sorted.slice(0, 50).map((agency) => {
+            {displayed.map((agency) => {
               const conf = confidenceLevel(agency.opportunityScore, maxScore);
               const leadPct = Math.min((agency.totalSpend / maxSpend) * 100, 100);
               const estRenewal =
                 agency.lastPurchaseYear > 0
                   ? Math.max(agency.lastPurchaseYear + 4, CURRENT_YEAR)
                   : CURRENT_YEAR;
+              const isOpen = expanded === agency.name;
 
               return (
-                <tr
-                  key={agency.name}
-                  className={`transition-colors group ${
-                    agency.contractStatus === "expiring"
-                      ? "bg-tertiary-fixed-dim/5 hover:bg-tertiary-fixed-dim/10"
-                      : "hover:bg-surface"
-                  }`}
-                >
-                  <td className="px-4 md:px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-7 h-7 rounded bg-surface-container-high flex items-center justify-center font-bold text-primary text-[10px] shrink-0">
-                        {initials(agency.name)}
+                <>
+                  <tr
+                    key={agency.name}
+                    onClick={() => setExpanded(isOpen ? null : agency.name)}
+                    className={`transition-colors group cursor-pointer ${
+                      agency.contractStatus === "expiring"
+                        ? "bg-tertiary-fixed-dim/5 hover:bg-tertiary-fixed-dim/10"
+                        : "hover:bg-surface"
+                    } ${isOpen ? "bg-surface-container-low" : ""}`}
+                  >
+                    <td className="px-4 md:px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-7 h-7 rounded bg-surface-container-high flex items-center justify-center font-bold text-primary text-[10px] shrink-0">
+                          {initials(agency.name)}
+                        </div>
+                        <span
+                          className="font-bold text-primary text-xs md:text-sm truncate max-w-[160px] md:max-w-[280px]"
+                          title={agency.name}
+                        >
+                          {agency.name}
+                        </span>
                       </div>
+                    </td>
+                    <td className="px-4 md:px-6 py-4 text-xs text-on-surface-variant whitespace-nowrap hidden sm:table-cell">
+                      {agency.type || "—"}
+                    </td>
+                    <td className="px-4 md:px-6 py-4 text-xs font-bold text-primary whitespace-nowrap">
+                      {formatCurrency(agency.totalSpend)}
+                    </td>
+                    <td className="px-4 md:px-6 py-4 hidden lg:table-cell">
+                      <span className={`text-xs font-medium px-2 py-0.5 rounded whitespace-nowrap ${conf.style}`}>
+                        {conf.label}
+                      </span>
+                    </td>
+                    <td className="px-4 md:px-6 py-4 text-xs text-on-surface-variant whitespace-nowrap hidden xl:table-cell">
+                      {estRenewal}
+                    </td>
+                    <td className="px-4 md:px-6 py-4 hidden md:table-cell">
+                      <div className="w-16 h-1.5 bg-surface-container rounded-full overflow-hidden">
+                        <div
+                          className={`h-full ${
+                            agency.contractStatus === "expiring" ? "bg-on-tertiary-container" : "bg-secondary"
+                          }`}
+                          style={{ width: `${leadPct}%` }}
+                        />
+                      </div>
+                    </td>
+                    <td className="px-4 md:px-6 py-4">{statusBadge(agency.contractStatus)}</td>
+                    <td className="px-4 md:px-6 py-4 text-right">
                       <span
-                        className="font-bold text-primary text-xs md:text-sm truncate max-w-[160px] md:max-w-[280px]"
-                        title={agency.name}
+                        className="material-symbols-outlined text-on-surface-variant transition-transform"
+                        style={{
+                          fontSize: "18px",
+                          transform: isOpen ? "rotate(180deg)" : "rotate(0)",
+                        }}
                       >
-                        {agency.name}
+                        expand_more
                       </span>
-                    </div>
-                  </td>
-                  <td className="px-4 md:px-6 py-4 text-xs text-on-surface-variant whitespace-nowrap hidden sm:table-cell">
-                    {agency.type || "—"}
-                  </td>
-                  <td className="px-4 md:px-6 py-4 text-xs font-bold text-primary whitespace-nowrap">
-                    {formatCurrency(agency.totalSpend)}
-                  </td>
-                  <td className="px-4 md:px-6 py-4 hidden lg:table-cell">
-                    <span className={`text-xs font-medium px-2 py-0.5 rounded whitespace-nowrap ${conf.style}`}>
-                      {conf.label}
-                    </span>
-                  </td>
-                  <td className="px-4 md:px-6 py-4 text-xs text-on-surface-variant whitespace-nowrap hidden xl:table-cell">
-                    {estRenewal}
-                  </td>
-                  <td className="px-4 md:px-6 py-4 hidden md:table-cell">
-                    <div className="w-16 h-1.5 bg-surface-container rounded-full overflow-hidden">
-                      <div
-                        className={`h-full ${
-                          agency.contractStatus === "expiring" ? "bg-on-tertiary-container" : "bg-secondary"
-                        }`}
-                        style={{ width: `${leadPct}%` }}
-                      />
-                    </div>
-                  </td>
-                  <td className="px-4 md:px-6 py-4">{statusBadge(agency.contractStatus)}</td>
-                  <td className="px-4 md:px-6 py-4 text-right hidden sm:table-cell">
-                    <button className="p-1 rounded hover:bg-surface-container-high transition-all">
-                      <span className="material-symbols-outlined text-primary" style={{ fontSize: "18px" }}>
-                        more_vert
-                      </span>
-                    </button>
-                  </td>
-                </tr>
+                    </td>
+                  </tr>
+                  {isOpen && (
+                    <tr key={`${agency.name}-details`} className="bg-surface-container-low">
+                      <td colSpan={8} className="px-4 md:px-6 py-4">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+                          <div>
+                            <div className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant mb-1">
+                              Top Vendor
+                            </div>
+                            <div className="font-bold text-primary">{agency.topCompany}</div>
+                          </div>
+                          <div>
+                            <div className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant mb-1">
+                              Transactions
+                            </div>
+                            <div className="font-bold text-primary">{agency.transactionCount}</div>
+                          </div>
+                          <div>
+                            <div className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant mb-1">
+                              Last Purchase
+                            </div>
+                            <div className="font-bold text-primary">
+                              {agency.lastPurchaseYear || "—"}
+                              <span className="text-on-surface-variant font-normal ml-1">
+                                ({agency.yearsSinceLastPurchase}y ago)
+                              </span>
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant mb-1">
+                              Est. Renewal
+                            </div>
+                            <div className="font-bold text-primary">{estRenewal}</div>
+                          </div>
+                          {agency.topKeywords.length > 0 && (
+                            <div className="col-span-2 md:col-span-4">
+                              <div className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant mb-1">
+                                Top Products
+                              </div>
+                              <div className="flex flex-wrap gap-1.5">
+                                {agency.topKeywords.map((kw) => (
+                                  <span
+                                    key={kw}
+                                    className="px-2 py-0.5 rounded bg-surface-container-high text-primary text-[11px] font-medium"
+                                  >
+                                    {kw}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </>
               );
             })}
           </tbody>
         </table>
       </div>
+
+      {hasMore && (
+        <div className="px-4 md:px-6 py-3 bg-surface-container-low/30 border-t border-surface-container flex items-center justify-between">
+          <span className="text-xs text-on-surface-variant">
+            Showing {displayed.length} of {filtered.length}
+          </span>
+          <button
+            onClick={() => setShowAll(!showAll)}
+            className="text-secondary font-bold text-xs hover:underline flex items-center gap-1"
+          >
+            {showAll ? "Show Top 50" : "Show All"}
+            <span className="material-symbols-outlined" style={{ fontSize: "14px" }}>
+              {showAll ? "expand_less" : "expand_more"}
+            </span>
+          </button>
+        </div>
+      )}
     </div>
   );
-}
+});
+
+export default OpportunityTable;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { Transaction, StateInfo } from "@/lib/types";
 import {
   summarizeByAgency,
@@ -27,6 +27,15 @@ export default function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedState, setSelectedState] = useState<string>("ALL");
   const [selectedRegion, setSelectedRegion] = useState<Region | "all">("all");
+  const [opportunityFilter, setOpportunityFilter] = useState<"all" | "expiring" | "active" | "dormant">("all");
+  const opportunitiesRef = useRef<HTMLDivElement>(null);
+
+  const handleViewAllOpportunities = () => {
+    setOpportunityFilter("expiring");
+    setTimeout(() => {
+      opportunitiesRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 50);
+  };
 
   const filteredTransactions = useMemo(() => {
     let base = allTransactions;
@@ -232,6 +241,7 @@ export default function Dashboard() {
             <InsightPanel
               expiringCount={expiringStats.count}
               expiringValue={expiringStats.totalValue}
+              onViewAll={handleViewAllOpportunities}
             />
           </div>
 
@@ -243,7 +253,12 @@ export default function Dashboard() {
 
           {/* Top Opportunities Table */}
           <div className="grid grid-cols-12 gap-6">
-            <OpportunityTable agencies={allAgencies} />
+            <OpportunityTable
+              ref={opportunitiesRef}
+              agencies={allAgencies}
+              filter={opportunityFilter}
+              onFilterChange={setOpportunityFilter}
+            />
           </div>
         </section>
       </main>
