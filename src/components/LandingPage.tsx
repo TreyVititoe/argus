@@ -107,7 +107,7 @@ export default function LandingPage() {
               <span />
               <span />
             </div>
-            <div className={styles.previewUrl}>argus.bz/cohesity</div>
+            <div className={styles.previewUrl}>argus.bz</div>
           </div>
           <div className={styles.previewBody}>
             <aside className={styles.pvSide}>
