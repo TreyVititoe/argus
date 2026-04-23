@@ -147,8 +147,8 @@
 /* Main pane */
 .main {
   padding: 22px 40px 60px;
-  max-width: 1220px;
   width: 100%;
+  min-width: 0;
 }
 
 /* Topbar (inside main) */
