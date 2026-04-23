@@ -4,6 +4,7 @@ import { StateInfo } from "@/lib/types";
 import rawData from "@/lib/data.json";
 import AppShell from "./AppShell";
 import PageHeader from "./PageHeader";
+import { useSession } from "./SessionProvider";
 import { formatCurrency, CURRENT_YEAR } from "@/lib/data-utils";
 
 const states = rawData.states as StateInfo[];
@@ -16,6 +17,12 @@ const stats = rawData.stats as {
 };
 
 export default function SettingsView() {
+  const user = useSession();
+  const displayName = user?.name || "—";
+  const displayEmail = user?.email || "—";
+  const workspace = user?.tenant
+    ? user.tenant.charAt(0).toUpperCase() + user.tenant.slice(1)
+    : "—";
   return (
     <AppShell>
       <PageHeader eyebrow="Configuration" title="Settings" />
@@ -25,25 +32,28 @@ export default function SettingsView() {
             <h4 className="text-base font-headline font-bold text-primary mb-4">Account</h4>
             <div className="space-y-4">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-secondary to-primary-container flex items-center justify-center text-white font-bold">
-                  AW
+                <div
+                  className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold"
+                  style={{ background: "var(--accent)" }}
+                >
+                  {user?.initials || "—"}
                 </div>
                 <div>
-                  <div className="font-bold text-primary text-sm">Alexander Wright</div>
-                  <div className="text-xs text-on-surface-variant">Chief Procurement Officer</div>
+                  <div className="font-bold text-primary text-sm">{displayName}</div>
+                  <div className="text-xs text-on-surface-variant">Signed in via {workspace}</div>
                 </div>
               </div>
               <div className="pt-4 border-t border-surface-container">
                 <div className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant mb-1">
                   Email
                 </div>
-                <div className="text-sm text-primary">alexander.wright@argus.demo</div>
+                <div className="text-sm text-primary">{displayEmail}</div>
               </div>
               <div>
                 <div className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant mb-1">
                   Workspace
                 </div>
-                <div className="text-sm text-primary">Argus Demo Org</div>
+                <div className="text-sm text-primary">{workspace}</div>
               </div>
             </div>
           </div>
