@@ -12,8 +12,8 @@ import TopAgenciesBarChart from "./TopAgenciesBarChart";
 import CompetitorRadar from "./CompetitorRadar";
 import OpportunityTable from "./OpportunityTable";
 import StateTabs from "./StateTabs";
+import PageHeader from "./PageHeader";
 import { getRegion, FL_REGIONS, Region } from "@/lib/regions";
-import styles from "./ExecutiveDashboard.module.css";
 
 const allTransactions = rawData.transactions as Transaction[];
 const allStates = rawData.states as StateInfo[];
@@ -112,15 +112,15 @@ export default function ExecutiveDashboard() {
 
   return (
     <AppShell search={search} onSearchChange={setSearch}>
-      <div className={styles.eyebrow}>Market Overview</div>
-      <div className={styles.h1Row}>
-        <h1 className={styles.headline}>Executive dashboard</h1>
-        <div className={styles.h1Meta}>
-          {selectedState === "ALL"
+      <PageHeader
+        eyebrow="Market Overview"
+        title="Executive dashboard"
+        meta={
+          selectedState === "ALL"
             ? `${allStates.length} states · ${allTransactions.length.toLocaleString()} transactions`
-            : allStates.find((s) => s.code === selectedState)?.name || selectedState}
-        </div>
-      </div>
+            : allStates.find((s) => s.code === selectedState)?.name || selectedState
+        }
+      />
 
       <div className="mb-7">
         <StateTabs

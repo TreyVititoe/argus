@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import AppShell from "./AppShell";
+import PageHeader from "./PageHeader";
 
 const SECTIONS = [
   {
@@ -52,20 +53,13 @@ const FAQ = [
 export default function HelpView() {
   return (
     <AppShell>
-      <section className="px-4 md:px-8 py-6 md:py-8 max-w-[1440px] mx-auto">
-        <div className="mb-6">
-          <span className="text-secondary font-bold text-xs uppercase tracking-widest block mb-1">
-            Documentation
-          </span>
-          <h3 className="text-2xl md:text-3xl font-headline font-extrabold text-primary tracking-tight">
-            Help
-          </h3>
-          <p className="text-sm text-on-surface-variant mt-1">
-            What Argus does and how to use it effectively.
-          </p>
-        </div>
+      <PageHeader
+        eyebrow="Documentation"
+        title="Help"
+        meta="What Argus does and how to use it effectively."
+      />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
           {SECTIONS.map((s) => (
             <Link
               key={s.title}
@@ -96,7 +90,6 @@ export default function HelpView() {
             ))}
           </div>
         </div>
-      </section>
     </AppShell>
   );
 }

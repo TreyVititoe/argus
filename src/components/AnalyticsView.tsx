@@ -22,6 +22,7 @@ import { Transaction, StateInfo } from "@/lib/types";
 import { formatCurrency } from "@/lib/data-utils";
 import rawData from "@/lib/data.json";
 import AppShell from "./AppShell";
+import PageHeader from "./PageHeader";
 import StateTabs from "./StateTabs";
 
 const allTransactions = rawData.transactions as Transaction[];
@@ -135,17 +136,9 @@ export default function AnalyticsView() {
 
   return (
     <AppShell>
-      <section className="px-4 md:px-8 py-6 md:py-8 max-w-[1440px] mx-auto">
-        <div className="mb-4">
-          <span className="text-secondary font-bold text-xs uppercase tracking-widest block mb-1">
-            Deep Dive
-          </span>
-          <h3 className="text-2xl md:text-3xl font-headline font-extrabold text-primary tracking-tight">
-            Analytics
-          </h3>
-        </div>
+      <PageHeader eyebrow="Deep Dive" title="Analytics" />
 
-        <div className="mb-6">
+      <div className="mb-6">
           <StateTabs
             states={allStates}
             selected={selectedState}
@@ -342,7 +335,6 @@ export default function AnalyticsView() {
             </ResponsiveContainer>
           </div>
         </div>
-      </section>
     </AppShell>
   );
 }

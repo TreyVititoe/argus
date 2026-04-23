@@ -5,6 +5,7 @@ import { Transaction, StateInfo, CompanySummary } from "@/lib/types";
 import { summarizeByCompany, formatCurrency } from "@/lib/data-utils";
 import rawData from "@/lib/data.json";
 import AppShell from "./AppShell";
+import PageHeader from "./PageHeader";
 import StateTabs from "./StateTabs";
 
 const allTransactions = rawData.transactions as Transaction[];
@@ -68,20 +69,13 @@ export default function CompaniesView() {
 
   return (
     <AppShell search={search} onSearchChange={setSearch}>
-      <section className="px-4 md:px-8 py-6 md:py-8 max-w-[1440px] mx-auto">
-        <div className="mb-4">
-          <span className="text-secondary font-bold text-xs uppercase tracking-widest block mb-1">
-            Vendor Database
-          </span>
-          <h3 className="text-2xl md:text-3xl font-headline font-extrabold text-primary tracking-tight">
-            Companies
-          </h3>
-          <p className="text-sm text-on-surface-variant mt-1">
-            {companies.length} vendors &middot; {formatCurrency(totalSpend)} tracked spend
-          </p>
-        </div>
+      <PageHeader
+        eyebrow="Vendor Database"
+        title="Companies"
+        meta={`${companies.length} vendors · ${formatCurrency(totalSpend)} tracked spend`}
+      />
 
-        <div className="mb-6">
+      <div className="mb-6">
           <StateTabs
             states={allStates}
             selected={selectedState}
@@ -200,7 +194,6 @@ export default function CompaniesView() {
             })}
           </div>
         </div>
-      </section>
     </AppShell>
   );
 }
