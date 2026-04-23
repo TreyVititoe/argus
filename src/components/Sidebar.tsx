@@ -3,17 +3,18 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import styles from "./shell.module.css";
 
 const NAV_ITEMS = [
-  { label: "Dashboard", icon: "dashboard", href: "/" },
-  { label: "Discovery", icon: "explore", href: "/discovery" },
-  { label: "Companies", icon: "business", href: "/companies" },
-  { label: "Analytics", icon: "monitoring", href: "/analytics" },
+  { label: "Dashboard", href: "/" },
+  { label: "Discovery", href: "/discovery" },
+  { label: "Companies", href: "/companies" },
+  { label: "Analytics", href: "/analytics" },
 ];
 
-const BOTTOM_ITEMS = [
-  { label: "Settings", icon: "settings", href: "/settings" },
-  { label: "Help", icon: "help_outline", href: "/help" },
+const FOOTER_ITEMS = [
+  { label: "Settings", href: "/settings" },
+  { label: "Help", href: "/help" },
 ];
 
 interface SidebarProps {
@@ -25,11 +26,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
   const pathname = usePathname();
 
   useEffect(() => {
-    if (open) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
+    document.body.style.overflow = open ? "hidden" : "";
     return () => {
       document.body.style.overflow = "";
     };
@@ -42,101 +39,71 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
 
   return (
     <>
-      {open && (
-        <div
-          onClick={onClose}
-          className="lg:hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
-          aria-hidden="true"
-        />
-      )}
-
+      <div
+        className={`${styles.overlay} ${open ? styles.open : ""}`}
+        onClick={onClose}
+        aria-hidden="true"
+      />
       <aside
-        className="sidebar-drawer fixed left-0 top-0 h-screen flex flex-col py-8 z-50 bg-[#041627] w-64 shadow-2xl transition-transform duration-300"
-        data-open={open}
-        aria-hidden={!open}
+        className={`${styles.sidebar} ${open ? styles.open : ""}`}
+        aria-hidden={!open && typeof window !== "undefined" && window.innerWidth < 1024}
       >
-        <div className="px-6 mb-10 flex items-center justify-between">
-          <Link href="/" onClick={onClose} className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-secondary rounded-xl flex items-center justify-center">
-              <span
-                className="material-symbols-outlined text-white"
-                style={{ fontVariationSettings: "'FILL' 1", fontSize: "18px" }}
-              >
-                dashboard
-              </span>
-            </div>
-            <div>
-              <h1 className="font-headline text-white font-extrabold tracking-widest uppercase text-xs">
-                Argus
-              </h1>
-              <p className="text-[10px] text-on-primary-container uppercase tracking-tighter">
-                Intelligence Suite
-              </p>
-            </div>
-          </Link>
-          <button
-            onClick={onClose}
-            className="lg:hidden text-slate-400 hover:text-white p-1"
-            aria-label="Close sidebar"
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: "22px" }}>
-              close
-            </span>
-          </button>
-        </div>
+        <Link href="/" onClick={onClose} className={styles.brand}>
+          <span className={styles.brandMark} aria-hidden="true">
+            <svg viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+              <rect width="128" height="128" rx="28" ry="28" fill="#4A7A67" />
+              <rect x="30" y="30" width="68" height="68" rx="14" ry="14" fill="#F2EBDD" />
+              <rect x="62" y="42" width="4" height="14" rx="2" fill="#4A7A67" />
+              <rect x="62" y="72" width="4" height="14" rx="2" fill="#4A7A67" />
+              <circle cx="64" cy="64" r="6" fill="#4A7A67" />
+            </svg>
+          </span>
+          <div className={styles.brandName}>Argus</div>
+        </Link>
 
-        <nav className="flex-1 px-4">
+        <button
+          type="button"
+          onClick={onClose}
+          className={`${styles.closeBtn} lg:!hidden`}
+          aria-label="Close sidebar"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M18 6 6 18" />
+            <path d="m6 6 12 12" />
+          </svg>
+        </button>
+
+        <nav className={styles.nav}>
           {NAV_ITEMS.map((item) => {
             const active = isActive(item.href);
             return (
               <Link
-                key={item.label}
+                key={item.href}
                 href={item.href}
                 onClick={onClose}
-                className={`${
-                  active
-                    ? "nav-active text-white rounded-r-full"
-                    : "text-slate-400 hover:text-white hover:bg-[#1a2b3c]"
-                } py-3 px-6 my-1 flex items-center gap-3 font-body text-sm font-medium transition-all duration-300`}
+                className={`${styles.navItem} ${active ? styles.active : ""}`}
               >
-                <span className="material-symbols-outlined" style={{ fontSize: "20px" }}>
-                  {item.icon}
-                </span>
+                <span className={styles.dot} />
                 {item.label}
               </Link>
             );
           })}
-
-          <div className="mt-8 px-2">
-            <Link
-              href="/discovery"
-              onClick={onClose}
-              className="w-full bg-gradient-to-br from-secondary to-primary-container text-white py-3 px-4 rounded-xl text-sm font-bold shadow-lg hover:brightness-110 transition-all flex items-center justify-center gap-2"
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: "16px" }}>
-                add_circle
-              </span>
-              New Analysis
-            </Link>
-          </div>
         </nav>
 
-        <div className="px-4 mt-auto">
-          <div className="bg-[#1a2b3c] h-[1px] w-full mb-4" />
-          {BOTTOM_ITEMS.map((item) => {
+        <Link href="/discovery" onClick={onClose} className={styles.newAnalysis}>
+          + New analysis
+        </Link>
+
+        <div className={styles.sidebarFooter}>
+          {FOOTER_ITEMS.map((item) => {
             const active = isActive(item.href);
             return (
               <Link
-                key={item.label}
+                key={item.href}
                 href={item.href}
                 onClick={onClose}
-                className={`${
-                  active ? "text-white bg-[#1a2b3c]" : "text-slate-400 hover:text-white"
-                } py-3 px-6 my-1 flex items-center gap-3 font-body text-sm font-medium transition-all rounded-lg`}
+                className={`${styles.footerLink} ${active ? styles.active : ""}`}
               >
-                <span className="material-symbols-outlined" style={{ fontSize: "20px" }}>
-                  {item.icon}
-                </span>
                 {item.label}
               </Link>
             );
