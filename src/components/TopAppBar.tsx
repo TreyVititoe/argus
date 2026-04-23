@@ -1,6 +1,7 @@
 "use client";
 
 import styles from "./shell.module.css";
+import { useSession } from "./SessionProvider";
 
 interface TopAppBarProps {
   search: string;
@@ -9,6 +10,9 @@ interface TopAppBarProps {
 }
 
 export default function TopAppBar({ search, onSearchChange, onMenuClick }: TopAppBarProps) {
+  const user = useSession();
+  const initials = user?.initials || "U";
+  const label = user?.name || user?.email || "Signed in";
   return (
     <div className={styles.topbar}>
       <button
@@ -47,7 +51,7 @@ export default function TopAppBar({ search, onSearchChange, onMenuClick }: TopAp
         />
       </div>
 
-      <div className={styles.avatar} title="Alexander Wright">AW</div>
+      <div className={styles.avatar} title={label}>{initials}</div>
     </div>
   );
 }

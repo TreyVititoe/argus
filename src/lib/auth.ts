@@ -1,11 +1,17 @@
-// Edge-compatible tenant session cookie helpers.
-// Cookie value format: `<tenant>.<base64url HMAC-SHA256(tenant, AUTH_SECRET)>`.
-// HttpOnly + signed, so tampering with the tenant slug invalidates the cookie.
+// Edge-compatible signed session cookie.
+// Value format: `<base64url(payload JSON)>.<base64url HMAC-SHA256(payload, AUTH_SECRET)>`
+// Payload: { tenant: string, email: string }
 
 export const TENANT_COOKIE_NAME = "argus_tenant";
 export const COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 7; // 7 days
 
+export type Session = {
+  tenant: string;
+  email: string;
+};
+
 const ENCODER = new TextEncoder();
+const DECODER = new TextDecoder();
 
 function base64url(bytes: Uint8Array): string {
   let s = "";
@@ -41,24 +47,26 @@ async function hmac(data: string, secret: string): Promise<Uint8Array> {
   return new Uint8Array(sig);
 }
 
-export async function signTenant(tenant: string): Promise<string> {
+export async function signSession(session: Session): Promise<string> {
   const secret = process.env.AUTH_SECRET;
   if (!secret) throw new Error("AUTH_SECRET is not configured");
-  const sig = await hmac(tenant, secret);
-  return `${tenant}.${base64url(sig)}`;
+  const payload = base64url(ENCODER.encode(JSON.stringify(session)));
+  const sig = await hmac(payload, secret);
+  return `${payload}.${base64url(sig)}`;
 }
 
-export async function verifyTenantCookie(
+export async function readSession(
   cookieValue: string | undefined | null
-): Promise<string | null> {
+): Promise<Session | null> {
   if (!cookieValue) return null;
   const secret = process.env.AUTH_SECRET;
   if (!secret) return null;
   const idx = cookieValue.lastIndexOf(".");
   if (idx <= 0 || idx === cookieValue.length - 1) return null;
-  const tenant = cookieValue.slice(0, idx);
+  const payload = cookieValue.slice(0, idx);
   const sigB64 = cookieValue.slice(idx + 1);
-  const expected = await hmac(tenant, secret);
+
+  const expected = await hmac(payload, secret);
   let actual: Uint8Array;
   try {
     actual = fromBase64url(sigB64);
@@ -66,7 +74,21 @@ export async function verifyTenantCookie(
     return null;
   }
   if (!timingSafeEqual(expected, actual)) return null;
-  return tenant;
+
+  try {
+    const decoded = DECODER.decode(fromBase64url(payload));
+    const parsed = JSON.parse(decoded) as Partial<Session>;
+    if (
+      !parsed ||
+      typeof parsed.tenant !== "string" ||
+      typeof parsed.email !== "string"
+    ) {
+      return null;
+    }
+    return { tenant: parsed.tenant, email: parsed.email };
+  } catch {
+    return null;
+  }
 }
 
 // Canonical mapping of allowed email domains to tenant slugs.
@@ -78,4 +100,21 @@ export function tenantForEmail(email: string): string | null {
   const m = email.trim().toLowerCase().match(/@([a-z0-9.-]+)$/);
   if (!m) return null;
   return DOMAIN_TO_TENANT[m[1]] ?? null;
+}
+
+export function nameFromEmail(email: string): string {
+  const local = email.split("@")[0] ?? "";
+  if (!local) return "";
+  return local
+    .split(/[._-]+/)
+    .filter(Boolean)
+    .map((p) => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase())
+    .join(" ");
+}
+
+export function initialsFromName(name: string): string {
+  if (!name) return "";
+  const words = name.trim().split(/\s+/);
+  if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
+  return (words[0][0] + words[words.length - 1][0]).toUpperCase();
 }

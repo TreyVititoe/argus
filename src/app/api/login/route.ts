@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   COOKIE_MAX_AGE_SECONDS,
   TENANT_COOKIE_NAME,
-  signTenant,
+  signSession,
   tenantForEmail,
 } from "@/lib/auth";
 
@@ -21,11 +21,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
 
-  const email = (body.email ?? "").trim();
-  if (!email) {
+  const rawEmail = (body.email ?? "").trim();
+  if (!rawEmail) {
     return NextResponse.json({ error: "Enter your work email" }, { status: 400 });
   }
 
+  const email = rawEmail.toLowerCase();
   const tenant = tenantForEmail(email);
   if (!tenant) {
     return NextResponse.json(
@@ -34,7 +35,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const signed = await signTenant(tenant);
+  const signed = await signSession({ tenant, email });
   const res = NextResponse.json({ tenant });
   res.cookies.set({
     name: TENANT_COOKIE_NAME,

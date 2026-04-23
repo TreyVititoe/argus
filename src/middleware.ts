@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { TENANT_COOKIE_NAME, verifyTenantCookie } from "@/lib/auth";
+import { TENANT_COOKIE_NAME, readSession } from "@/lib/auth";
 
 const PUBLIC_PATHS = new Set(["/", "/login"]);
 
@@ -23,14 +23,13 @@ export async function middleware(req: NextRequest) {
   if (!firstSegment) return NextResponse.next();
 
   const cookieValue = req.cookies.get(TENANT_COOKIE_NAME)?.value;
-  const verifiedTenant = await verifyTenantCookie(cookieValue);
+  const session = await readSession(cookieValue);
 
-  // Legacy flat URLs: /analytics, /discovery, etc.
-  // Redirect to the authenticated tenant's version if logged in, else to /login.
+  // Legacy flat URLs: /analytics, /discovery, etc. — redirect to /{tenant}/{slug}.
   if (RESERVED_SUBROUTES.has(firstSegment)) {
     const url = req.nextUrl.clone();
-    if (verifiedTenant) {
-      url.pathname = `/${verifiedTenant}/${firstSegment}`;
+    if (session) {
+      url.pathname = `/${session.tenant}/${firstSegment}`;
       return NextResponse.redirect(url);
     }
     url.pathname = "/login";
@@ -38,7 +37,7 @@ export async function middleware(req: NextRequest) {
   }
 
   // Otherwise treat the first segment as a company slug.
-  if (!verifiedTenant || verifiedTenant !== firstSegment) {
+  if (!session || session.tenant !== firstSegment) {
     const url = req.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
@@ -49,7 +48,6 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
-    // Everything except static assets and public API routes.
     "/((?!_next/static|_next/image|favicon.ico|icon.svg|api/).*)",
   ],
 };
