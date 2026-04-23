@@ -60,16 +60,9 @@ export default function LandingPage() {
             <a href="#pricing" onClick={(e) => smoothScroll(e, "pricing")}>Pricing</a>
           </div>
           <div className={styles.navRight}>
-            <Link className={`${styles.btn} ${styles.btnGhost}`} href="/login">
-              Sign in
+            <Link className={`${styles.btn} ${styles.btnAccent}`} href="/cohesity">
+              Sign In
             </Link>
-            <a
-              className={`${styles.btn} ${styles.btnPrimary}`}
-              href="#demo"
-              onClick={(e) => smoothScroll(e, "demo")}
-            >
-              Request a demo
-            </a>
           </div>
         </div>
       </nav>
