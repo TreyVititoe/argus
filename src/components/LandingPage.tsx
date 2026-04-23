@@ -60,7 +60,7 @@ export default function LandingPage() {
             <a href="#pricing" onClick={(e) => smoothScroll(e, "pricing")}>Pricing</a>
           </div>
           <div className={styles.navRight}>
-            <Link className={`${styles.btn} ${styles.btnAccent}`} href="/cohesity">
+            <Link className={`${styles.btn} ${styles.btnAccent}`} href="/login">
               Sign In
             </Link>
           </div>
@@ -84,7 +84,7 @@ export default function LandingPage() {
           with the right pitch.
         </p>
         <div className={styles.heroCta}>
-          <Link className={`${styles.btn} ${styles.btnAccent}`} href="/cohesity">
+          <Link className={`${styles.btn} ${styles.btnAccent}`} href="/login">
             Sign In →
           </Link>
           <a

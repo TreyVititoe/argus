@@ -5,19 +5,26 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import styles from "./shell.module.css";
 
-const NAV_ITEMS = [
-  { label: "Dashboard", href: "/cohesity" },
-  { label: "Discovery", href: "/discovery" },
-  { label: "Companies", href: "/companies" },
-  { label: "Analytics", href: "/analytics" },
+const DEFAULT_COMPANY = "cohesity";
+
+const NAV_ITEMS: { label: string; sub: string | null }[] = [
+  { label: "Dashboard", sub: null },
+  { label: "Discovery", sub: "discovery" },
+  { label: "Companies", sub: "companies" },
+  { label: "Analytics", sub: "analytics" },
 ];
 
-const SHARED_ROUTES = ["/discovery", "/companies", "/analytics", "/settings", "/help"];
-
-const FOOTER_ITEMS = [
-  { label: "Settings", href: "/settings" },
-  { label: "Help", href: "/help" },
+const FOOTER_ITEMS: { label: string; sub: string }[] = [
+  { label: "Settings", sub: "settings" },
+  { label: "Help", sub: "help" },
 ];
+
+function companyFromPath(pathname: string): string {
+  // First non-empty segment is the company slug (unless it's a reserved page).
+  const seg = pathname.split("/").filter(Boolean)[0];
+  if (!seg || seg === "login") return DEFAULT_COMPANY;
+  return seg;
+}
 
 interface SidebarProps {
   open: boolean;
@@ -26,6 +33,7 @@ interface SidebarProps {
 
 export default function Sidebar({ open, onClose }: SidebarProps) {
   const pathname = usePathname();
+  const company = companyFromPath(pathname);
 
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
@@ -34,14 +42,15 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
     };
   }, [open]);
 
-  const isActive = (href: string) => {
-    if (href === "/cohesity") {
-      // Dashboard nav is active on any company route (/cohesity, /crowdstrike, etc.)
-      if (pathname === "/") return false;
-      const isSharedRoute = SHARED_ROUTES.some((r) => pathname === r || pathname.startsWith(r + "/"));
-      return !isSharedRoute;
+  const hrefFor = (sub: string | null) => (sub ? `/${company}/${sub}` : `/${company}`);
+
+  const isActive = (sub: string | null) => {
+    const target = hrefFor(sub);
+    if (sub === null) {
+      // Dashboard = exact match on /{company}
+      return pathname === target;
     }
-    return pathname === href || pathname.startsWith(href + "/");
+    return pathname === target || pathname.startsWith(target + "/");
   };
 
   return (
@@ -55,7 +64,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
         className={`${styles.sidebar} ${open ? styles.open : ""}`}
         aria-hidden={!open && typeof window !== "undefined" && window.innerWidth < 1024}
       >
-        <Link href="/cohesity" onClick={onClose} className={styles.brand}>
+        <Link href={`/${company}`} onClick={onClose} className={styles.brand}>
           <span className={styles.brandMark} aria-hidden="true">
             <svg viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
               <rect width="128" height="128" rx="28" ry="28" fill="#4A7A67" />
@@ -82,11 +91,11 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
 
         <nav className={styles.nav}>
           {NAV_ITEMS.map((item) => {
-            const active = isActive(item.href);
+            const active = isActive(item.sub);
             return (
               <Link
-                key={item.href}
-                href={item.href}
+                key={item.label}
+                href={hrefFor(item.sub)}
                 onClick={onClose}
                 className={`${styles.navItem} ${active ? styles.active : ""}`}
               >
@@ -97,17 +106,17 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
           })}
         </nav>
 
-        <Link href="/discovery" onClick={onClose} className={styles.newAnalysis}>
+        <Link href={hrefFor("discovery")} onClick={onClose} className={styles.newAnalysis}>
           + New analysis
         </Link>
 
         <div className={styles.sidebarFooter}>
           {FOOTER_ITEMS.map((item) => {
-            const active = isActive(item.href);
+            const active = isActive(item.sub);
             return (
               <Link
-                key={item.href}
-                href={item.href}
+                key={item.label}
+                href={hrefFor(item.sub)}
                 onClick={onClose}
                 className={`${styles.footerLink} ${active ? styles.active : ""}`}
               >

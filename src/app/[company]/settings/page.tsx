@@ -1,5 +1,5 @@
 import SettingsView from "@/components/SettingsView";
 
-export default function SettingsPage() {
+export default function CompanySettingsPage() {
   return <SettingsView />;
 }
