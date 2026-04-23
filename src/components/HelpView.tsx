@@ -46,7 +46,7 @@ const FAQ = [
   },
   {
     q: "When I'm in Florida, can I filter further?",
-    a: "Yes — a Region row appears with North / Central / South / Statewide pills. State-level agencies (Florida Department of X) are tagged Statewide since they don't anchor to a specific city.",
+    a: "Yes — a Region row appears with North / Central / South / State agencies pills. State-level agencies (Florida Department of X) are tagged State agencies since they don't anchor to a specific city.",
   },
 ];
 

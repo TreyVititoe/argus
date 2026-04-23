@@ -1,7 +1,7 @@
 // Region classifier for state-level breakdowns.
 // Currently only Florida is mapped; easy to extend for other states.
 
-export type Region = "North FL" | "Central FL" | "South FL" | "Statewide" | "Unknown";
+export type Region = "North FL" | "Central FL" | "South FL" | "State agencies" | "Unknown";
 
 // Florida regions based on county/city geography
 const FL_SOUTH = [
@@ -52,7 +52,7 @@ export function getFlRegion(agency: string): Region {
   // State-level agencies: "Florida Department of X", "Florida Office of X", etc.
   // These don't have a regional anchor.
   if (/^florida (department|office|agency|board|commission|division|lottery|supreme court|department)/.test(a)) {
-    return "Statewide";
+    return "State agencies";
   }
 
   if (matchAny(a, FL_SOUTH)) return "South FL";
@@ -69,4 +69,4 @@ export function getRegion(agency: string, stateCode: string): Region | null {
   return null; // other states don't have a region classifier yet
 }
 
-export const FL_REGIONS: Region[] = ["North FL", "Central FL", "South FL", "Statewide"];
+export const FL_REGIONS: Region[] = ["North FL", "Central FL", "South FL", "State agencies"];
