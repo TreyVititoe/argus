@@ -28,7 +28,7 @@ export default function SpendTrendChart({ transactions }: { transactions: Transa
     <div className="col-span-12 lg:col-span-8 bg-surface-container-lowest p-4 md:p-6 rounded-xl shadow-sm">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h4 className="text-lg font-headline font-bold text-primary">Procurement Spending Trends</h4>
+          <h4 className="text-lg font-headline font-semibold text-primary">Procurement Spending Trends</h4>
           <p className="text-xs text-on-surface-variant">Aggregated spend across all agencies by year</p>
         </div>
         <div className="flex gap-4">

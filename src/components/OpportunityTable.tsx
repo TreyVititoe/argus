@@ -110,7 +110,7 @@ const OpportunityTable = forwardRef<HTMLDivElement, OpportunityTableProps>(funct
     >
       <div className="px-4 md:px-6 py-4 bg-surface-container-low/30 border-b border-surface-container gap-3 flex flex-col lg:flex-row lg:items-center lg:justify-between">
         <div className="min-w-0">
-          <h4 className="text-base md:text-lg font-headline font-bold text-primary">Top Opportunities</h4>
+          <h4 className="text-base md:text-lg font-headline font-semibold text-primary">Top Opportunities</h4>
           <p className="text-[11px] md:text-xs text-on-surface-variant">
             {filter === "expiring"
               ? `${filtered.length} agencies in the renewal window — prime targets for outreach`

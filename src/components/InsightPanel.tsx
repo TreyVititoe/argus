@@ -14,7 +14,7 @@ export default function InsightPanel({ expiringCount, expiringValue, onViewAll }
       <span className="inline-flex self-start px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-[0.14em] mb-4" style={{ background: "var(--accent-soft)", color: "oklch(0.30 0.12 160)" }}>
         Renewal Alert
       </span>
-      <h4 className="font-headline font-normal leading-[1.08] tracking-tight mb-3 text-primary" style={{ fontSize: "28px" }}>
+      <h4 className="font-headline font-bold leading-[1.08] tracking-[-0.02em] mb-3 text-primary" style={{ fontSize: "28px" }}>
         {expiringCount} contracts<br />expiring soon
       </h4>
       <p className="text-[14px] leading-relaxed mb-5" style={{ color: "var(--ink-2)" }}>

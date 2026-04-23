@@ -17,11 +17,11 @@ export default function KpiStat({ label, value, delta, deltaType = "positive" }:
 
   return (
     <div className="bg-surface-container-lowest border border-outline-variant rounded-[14px] p-5 min-h-[118px] flex flex-col gap-2.5 transition-colors hover:border-[oklch(0.88_0.007_85)]">
-      <p className="text-on-surface-variant text-[11px] font-semibold uppercase tracking-[0.12em] leading-tight">
+      <p className="text-on-surface-variant text-[11px] font-bold uppercase tracking-[0.12em] leading-tight">
         {label}
       </p>
       <div className="flex items-baseline gap-2.5 flex-wrap">
-        <span className="font-headline font-normal text-[32px] leading-none tracking-tight text-primary">
+        <span className="font-headline font-semibold text-[28px] leading-none tracking-[-0.01em] text-primary">
           {value}
         </span>
         {delta && <span className={`${deltaColor} text-[13px] font-medium`}>{delta}</span>}

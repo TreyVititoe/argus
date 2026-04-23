@@ -52,7 +52,7 @@ export default function CompetitorsTable({ transactions }: { transactions: Trans
         <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-on-surface-variant mb-0.5">
           Competitor Landscape
         </div>
-        <div className="font-headline text-[22px] leading-tight text-primary">Spend share by vendor</div>
+        <div className="font-headline font-semibold text-[22px] leading-tight tracking-[-0.015em] text-primary">Spend share by vendor</div>
       </div>
 
       <div className="overflow-y-auto max-h-[320px]">

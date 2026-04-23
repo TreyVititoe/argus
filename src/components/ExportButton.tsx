@@ -142,7 +142,7 @@ export default function ExportButton({ transactions }: ExportButtonProps) {
             <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--accent)] mb-2">
               Enterprise feature
             </div>
-            <h3 className="font-headline text-[28px] leading-tight tracking-tight text-primary mb-2">
+            <h3 className="font-headline font-bold text-[28px] leading-tight tracking-[-0.02em] text-primary mb-2">
               Export filtered data
             </h3>
             <p className="text-[13px] text-on-surface-variant mb-5 leading-relaxed">

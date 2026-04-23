@@ -32,7 +32,7 @@ export default function TopAgenciesBarChart({ agencies }: { agencies: AgencySumm
         <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-on-surface-variant mb-0.5">
           Agency Spend
         </div>
-        <div className="font-headline text-[22px] leading-tight text-primary">
+        <div className="font-headline font-semibold text-[22px] leading-tight tracking-[-0.015em] text-primary">
           Top agencies by contract value
         </div>
         <p className="text-[12px] text-on-surface-variant mt-1">
