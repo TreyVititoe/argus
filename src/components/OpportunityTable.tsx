@@ -1,13 +1,15 @@
 "use client";
 
 import { useState, forwardRef, useMemo } from "react";
-import { AgencySummary, ContractStatus } from "@/lib/types";
+import { AgencySummary, ContractStatus, Transaction } from "@/lib/types";
 import { formatCurrency, CURRENT_YEAR } from "@/lib/data-utils";
+import ExportButton from "./ExportButton";
 
 type FilterMode = "all" | "expiring" | "active" | "dormant";
 
 interface OpportunityTableProps {
   agencies: AgencySummary[];
+  transactions: Transaction[];
   filter: FilterMode;
   onFilterChange: (f: FilterMode) => void;
 }
@@ -55,7 +57,7 @@ const FILTERS: { mode: FilterMode; label: string }[] = [
 ];
 
 const OpportunityTable = forwardRef<HTMLDivElement, OpportunityTableProps>(function OpportunityTable(
-  { agencies, filter, onFilterChange },
+  { agencies, transactions, filter, onFilterChange },
   ref
 ) {
   const [expanded, setExpanded] = useState<string | null>(null);
@@ -142,6 +144,8 @@ const OpportunityTable = forwardRef<HTMLDivElement, OpportunityTableProps>(funct
             className="w-full pl-9 pr-3 py-2 text-[13px] rounded-full border border-outline-variant bg-surface-container-lowest text-primary placeholder:text-on-surface-variant outline-none focus:border-[var(--accent-soft)] focus:shadow-[0_0_0_4px_var(--accent-bg)]"
           />
         </div>
+
+        <ExportButton transactions={transactions} />
 
         {/* Filter pills */}
         <div className="flex items-center gap-1 overflow-x-auto shrink-0">

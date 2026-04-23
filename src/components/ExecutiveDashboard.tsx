@@ -2,7 +2,12 @@
 
 import { useState, useMemo, useRef } from "react";
 import { Transaction, StateInfo } from "@/lib/types";
-import { summarizeByAgency, summarizeByCompany, formatCurrency } from "@/lib/data-utils";
+import {
+  summarizeByAgency,
+  summarizeByCompany,
+  summarizeByVendor,
+  formatCurrency,
+} from "@/lib/data-utils";
 import rawData from "@/lib/data.json";
 import AppShell from "./AppShell";
 import KpiStat from "./KpiStat";
@@ -22,6 +27,8 @@ const allStates = rawData.states as StateInfo[];
 const allYears = Array.from(
   new Set(allTransactions.map((t) => t.year).filter((y) => y > 0))
 ).sort((a, b) => b - a);
+const MIN_YEAR = allYears[allYears.length - 1];
+const MAX_YEAR = allYears[0];
 
 function formatCompany(slug: string): string {
   const known: Record<string, string> = {
@@ -32,9 +39,20 @@ function formatCompany(slug: string): string {
   return slug.charAt(0).toUpperCase() + slug.slice(1);
 }
 
+function yearRangeLabel(yearMin: number | null, yearMax: number | null): string {
+  if (yearMin === null && yearMax === null) return "All years";
+  if (yearMin !== null && yearMax !== null) {
+    return yearMin === yearMax ? `${yearMin}` : `${yearMin} – ${yearMax}`;
+  }
+  if (yearMin !== null) return `${yearMin}+`;
+  return `through ${yearMax}`;
+}
+
 export default function ExecutiveDashboard({ company }: { company?: string } = {}) {
   const [search, setSearch] = useState("");
-  const [selectedYear, setSelectedYear] = useState<number | "ALL">("ALL");
+  const [yearMin, setYearMin] = useState<number | null>(null);
+  const [yearMax, setYearMax] = useState<number | null>(null);
+  const [yearsOpen, setYearsOpen] = useState(false);
   const [selectedState, setSelectedState] = useState<string>("ALL");
   const [selectedRegion, setSelectedRegion] = useState<Region | "all">("all");
   const [opportunityFilter, setOpportunityFilter] = useState<"all" | "expiring" | "active" | "dormant">("all");
@@ -49,9 +67,8 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
 
   const filteredTransactions = useMemo(() => {
     let base = allTransactions;
-    if (selectedYear !== "ALL") {
-      base = base.filter((t) => t.year === selectedYear);
-    }
+    if (yearMin !== null) base = base.filter((t) => t.year >= yearMin);
+    if (yearMax !== null) base = base.filter((t) => t.year <= yearMax);
     if (selectedState !== "ALL") {
       base = base.filter((t) => t.stateCode === selectedState);
     }
@@ -66,17 +83,7 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
         t.company.toLowerCase().includes(q) ||
         t.keyword.toLowerCase().includes(q)
     );
-  }, [search, selectedYear, selectedState, selectedRegion]);
-
-  const yearCounts = useMemo(() => {
-    const stateScoped =
-      selectedState === "ALL"
-        ? allTransactions
-        : allTransactions.filter((t) => t.stateCode === selectedState);
-    const counts: Record<number, number> = {};
-    for (const t of stateScoped) counts[t.year] = (counts[t.year] || 0) + 1;
-    return { total: stateScoped.length, counts };
-  }, [selectedState]);
+  }, [search, yearMin, yearMax, selectedState, selectedRegion]);
 
   const handleStateChange = (code: string) => {
     setSelectedState(code);
@@ -98,6 +105,7 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
 
   const allAgencies = useMemo(() => summarizeByAgency(filteredTransactions), [filteredTransactions]);
   const allCompanies = useMemo(() => summarizeByCompany(filteredTransactions), [filteredTransactions]);
+  const allVendors = useMemo(() => summarizeByVendor(filteredTransactions), [filteredTransactions]);
 
   const totalSpend = useMemo(
     () => filteredTransactions.reduce((sum, t) => sum + t.totalPrice, 0),
@@ -140,25 +148,88 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
         }
       />
 
-      <div className="mb-4 flex items-center flex-wrap gap-2.5">
-        <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-on-surface-variant mr-2">
-          Year
-        </span>
-        <YearPill
-          active={selectedYear === "ALL"}
-          onClick={() => setSelectedYear("ALL")}
-          label="All years"
-          count={yearCounts.total}
-        />
-        {allYears.map((y) => (
-          <YearPill
-            key={y}
-            active={selectedYear === y}
-            onClick={() => setSelectedYear(y)}
-            label={String(y)}
-            count={yearCounts.counts[y] || 0}
-          />
-        ))}
+      {/* Year range: collapsible summary bar */}
+      <div className="mb-4">
+        <button
+          type="button"
+          onClick={() => setYearsOpen((v) => !v)}
+          className="inline-flex items-center gap-3 rounded-full border border-outline-variant bg-surface-container-lowest px-4 py-2 text-[13px] font-medium text-primary transition-colors hover:border-[oklch(0.88_0.007_85)]"
+        >
+          <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-on-surface-variant">
+            Year
+          </span>
+          <span>{yearRangeLabel(yearMin, yearMax)}</span>
+          <span className="text-on-surface-variant">
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              style={{ transform: yearsOpen ? "rotate(180deg)" : "rotate(0)", transition: "transform 120ms" }}
+            >
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </span>
+        </button>
+
+        {yearsOpen && (
+          <div className="mt-3 flex items-center flex-wrap gap-3 rounded-[14px] border border-outline-variant bg-surface-container-lowest px-4 py-3">
+            <label className="inline-flex items-center gap-2 text-[12px] text-on-surface-variant">
+              From
+              <select
+                value={yearMin ?? ""}
+                onChange={(e) => setYearMin(e.target.value ? Number(e.target.value) : null)}
+                className="rounded-[10px] border border-outline-variant bg-surface-container-lowest px-3 py-1.5 text-[13px] text-primary outline-none focus:border-[var(--accent-soft)]"
+              >
+                <option value="">Any</option>
+                {allYears.slice().reverse().map((y) => (
+                  <option key={y} value={y}>
+                    {y}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="inline-flex items-center gap-2 text-[12px] text-on-surface-variant">
+              To
+              <select
+                value={yearMax ?? ""}
+                onChange={(e) => setYearMax(e.target.value ? Number(e.target.value) : null)}
+                className="rounded-[10px] border border-outline-variant bg-surface-container-lowest px-3 py-1.5 text-[13px] text-primary outline-none focus:border-[var(--accent-soft)]"
+              >
+                <option value="">Any</option>
+                {allYears.slice().reverse().map((y) => (
+                  <option key={y} value={y}>
+                    {y}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button
+              type="button"
+              onClick={() => {
+                setYearMin(null);
+                setYearMax(null);
+              }}
+              className="text-[12px] font-medium text-[var(--accent)] hover:underline"
+            >
+              All years
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setYearMin(MIN_YEAR);
+                setYearMax(MAX_YEAR);
+              }}
+              className="text-[12px] font-medium text-on-surface-variant hover:text-primary"
+            >
+              Full range ({MIN_YEAR}–{MAX_YEAR})
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="mb-7">
@@ -203,7 +274,7 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
         </div>
       )}
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 mb-5">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3.5 mb-5">
         <KpiStat
           label="Total Contract Value"
           value={formatCurrency(totalSpend)}
@@ -228,6 +299,12 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
           delta={formatCurrency(allCompanies[0]?.totalSpend || 0)}
           deltaType="neutral"
         />
+        <KpiStat
+          label="Top Vendor"
+          value={allVendors[0]?.name || "—"}
+          delta={formatCurrency(allVendors[0]?.totalSpend || 0)}
+          deltaType="neutral"
+        />
       </div>
 
       <div className="grid grid-cols-12 gap-4 mb-5">
@@ -248,43 +325,11 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
         <OpportunityTable
           ref={opportunitiesRef}
           agencies={allAgencies}
+          transactions={filteredTransactions}
           filter={opportunityFilter}
           onFilterChange={setOpportunityFilter}
         />
       </div>
     </AppShell>
-  );
-}
-
-function YearPill({
-  active,
-  onClick,
-  label,
-  count,
-}: {
-  active: boolean;
-  onClick: () => void;
-  label: string;
-  count: number;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`shrink-0 inline-flex items-center gap-2.5 pl-4 pr-3.5 py-2 rounded-full text-[13px] font-medium border transition-colors ${
-        active
-          ? "bg-primary border-primary text-white"
-          : "bg-surface-container-lowest border-outline-variant text-primary hover:border-[oklch(0.88_0.007_85)]"
-      }`}
-    >
-      {label}
-      <span
-        className={`text-[12px] font-medium rounded-full px-2 py-0.5 ${
-          active ? "bg-white/12 text-white/80" : "bg-surface-container text-on-surface-variant"
-        }`}
-      >
-        {count.toLocaleString()}
-      </span>
-    </button>
   );
 }
