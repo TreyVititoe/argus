@@ -15,8 +15,13 @@ import StateTabs from "./StateTabs";
 import PageHeader from "./PageHeader";
 import { getRegion, FL_REGIONS, Region } from "@/lib/regions";
 
-const allTransactions = rawData.transactions as Transaction[];
+const allTransactions = (rawData.transactions as Transaction[]).filter(
+  (t) => t.competitor !== "Medical Platforms"
+);
 const allStates = rawData.states as StateInfo[];
+const allYears = Array.from(
+  new Set(allTransactions.map((t) => t.year).filter((y) => y > 0))
+).sort((a, b) => b - a);
 
 function formatCompany(slug: string): string {
   const known: Record<string, string> = {
@@ -29,6 +34,7 @@ function formatCompany(slug: string): string {
 
 export default function ExecutiveDashboard({ company }: { company?: string } = {}) {
   const [search, setSearch] = useState("");
+  const [selectedYear, setSelectedYear] = useState<number | "ALL">("ALL");
   const [selectedState, setSelectedState] = useState<string>("ALL");
   const [selectedRegion, setSelectedRegion] = useState<Region | "all">("all");
   const [opportunityFilter, setOpportunityFilter] = useState<"all" | "expiring" | "active" | "dormant">("all");
@@ -43,6 +49,9 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
 
   const filteredTransactions = useMemo(() => {
     let base = allTransactions;
+    if (selectedYear !== "ALL") {
+      base = base.filter((t) => t.year === selectedYear);
+    }
     if (selectedState !== "ALL") {
       base = base.filter((t) => t.stateCode === selectedState);
     }
@@ -57,7 +66,17 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
         t.company.toLowerCase().includes(q) ||
         t.keyword.toLowerCase().includes(q)
     );
-  }, [search, selectedState, selectedRegion]);
+  }, [search, selectedYear, selectedState, selectedRegion]);
+
+  const yearCounts = useMemo(() => {
+    const stateScoped =
+      selectedState === "ALL"
+        ? allTransactions
+        : allTransactions.filter((t) => t.stateCode === selectedState);
+    const counts: Record<number, number> = {};
+    for (const t of stateScoped) counts[t.year] = (counts[t.year] || 0) + 1;
+    return { total: stateScoped.length, counts };
+  }, [selectedState]);
 
   const handleStateChange = (code: string) => {
     setSelectedState(code);
@@ -98,16 +117,6 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
     [allAgencies]
   );
 
-  const avgDeal = useMemo(() => {
-    if (filteredTransactions.length === 0) return 0;
-    return totalSpend / filteredTransactions.length;
-  }, [totalSpend, filteredTransactions]);
-
-  const winRate = useMemo(() => {
-    if (allAgencies.length === 0) return 0;
-    return (activeCount / allAgencies.length) * 100;
-  }, [activeCount, allAgencies]);
-
   const yoyGrowth = useMemo(() => {
     const byYear = new Map<number, number>();
     for (const t of filteredTransactions) {
@@ -130,6 +139,27 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
             : allStates.find((s) => s.code === selectedState)?.name || selectedState
         }
       />
+
+      <div className="mb-4 flex items-center flex-wrap gap-2.5">
+        <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-on-surface-variant mr-2">
+          Year
+        </span>
+        <YearPill
+          active={selectedYear === "ALL"}
+          onClick={() => setSelectedYear("ALL")}
+          label="All years"
+          count={yearCounts.total}
+        />
+        {allYears.map((y) => (
+          <YearPill
+            key={y}
+            active={selectedYear === y}
+            onClick={() => setSelectedYear(y)}
+            label={String(y)}
+            count={yearCounts.counts[y] || 0}
+          />
+        ))}
+      </div>
 
       <div className="mb-7">
         <StateTabs
@@ -173,7 +203,7 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
         </div>
       )}
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3.5 mb-5">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 mb-5">
         <KpiStat
           label="Total Contract Value"
           value={formatCurrency(totalSpend)}
@@ -193,19 +223,7 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
           deltaType="neutral"
         />
         <KpiStat
-          label="Win Rate"
-          value={`${winRate.toFixed(1)}%`}
-          delta={winRate >= 50 ? "+" : "-"}
-          deltaType={winRate >= 50 ? "positive" : "negative"}
-        />
-        <KpiStat
-          label="Avg Deal Size"
-          value={formatCurrency(avgDeal)}
-          delta={`${filteredTransactions.length.toLocaleString()} txns`}
-          deltaType="neutral"
-        />
-        <KpiStat
-          label="Top Vendor"
+          label="Top Reseller"
           value={allCompanies[0]?.name.split(/\s+/)[0] || "—"}
           delta={formatCurrency(allCompanies[0]?.totalSpend || 0)}
           deltaType="neutral"
@@ -235,5 +253,38 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
         />
       </div>
     </AppShell>
+  );
+}
+
+function YearPill({
+  active,
+  onClick,
+  label,
+  count,
+}: {
+  active: boolean;
+  onClick: () => void;
+  label: string;
+  count: number;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`shrink-0 inline-flex items-center gap-2.5 pl-4 pr-3.5 py-2 rounded-full text-[13px] font-medium border transition-colors ${
+        active
+          ? "bg-primary border-primary text-white"
+          : "bg-surface-container-lowest border-outline-variant text-primary hover:border-[oklch(0.88_0.007_85)]"
+      }`}
+    >
+      {label}
+      <span
+        className={`text-[12px] font-medium rounded-full px-2 py-0.5 ${
+          active ? "bg-white/12 text-white/80" : "bg-surface-container text-on-surface-variant"
+        }`}
+      >
+        {count.toLocaleString()}
+      </span>
+    </button>
   );
 }

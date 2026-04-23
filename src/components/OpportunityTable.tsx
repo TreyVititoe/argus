@@ -60,11 +60,22 @@ const OpportunityTable = forwardRef<HTMLDivElement, OpportunityTableProps>(funct
 ) {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [showAll, setShowAll] = useState(false);
+  const [query, setQuery] = useState("");
 
   const filtered = useMemo(() => {
     let result = [...agencies];
     if (filter !== "all") {
       result = result.filter((a) => a.contractStatus === filter);
+    }
+    const q = query.trim().toLowerCase();
+    if (q) {
+      result = result.filter(
+        (a) =>
+          a.name.toLowerCase().includes(q) ||
+          (a.type || "").toLowerCase().includes(q) ||
+          (a.topCompany || "").toLowerCase().includes(q) ||
+          a.topKeywords.some((k) => k.toLowerCase().includes(q))
+      );
     }
     // Sort: expiring first, then by opportunity score / spend
     result.sort((a, b) => {
@@ -75,7 +86,7 @@ const OpportunityTable = forwardRef<HTMLDivElement, OpportunityTableProps>(funct
       return b.opportunityScore - a.opportunityScore || b.totalSpend - a.totalSpend;
     });
     return result;
-  }, [agencies, filter]);
+  }, [agencies, filter, query]);
 
   const counts = useMemo(() => {
     const c = { all: agencies.length, expiring: 0, active: 0, dormant: 0 };
@@ -107,6 +118,29 @@ const OpportunityTable = forwardRef<HTMLDivElement, OpportunityTableProps>(funct
               ? `${filtered.length} dormant accounts (may need re-engagement)`
               : "Expiring contracts surface first, then by opportunity score"}
           </p>
+        </div>
+
+        <div className="relative w-full lg:w-72 shrink-0">
+          <svg
+            className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <circle cx="11" cy="11" r="7" />
+            <path d="m21 21-4.3-4.3" />
+          </svg>
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search agencies, resellers, products…"
+            className="w-full pl-9 pr-3 py-2 text-[13px] rounded-full border border-outline-variant bg-surface-container-lowest text-primary placeholder:text-on-surface-variant outline-none focus:border-[var(--accent-soft)] focus:shadow-[0_0_0_4px_var(--accent-bg)]"
+          />
         </div>
 
         {/* Filter pills */}
@@ -223,7 +257,7 @@ const OpportunityTable = forwardRef<HTMLDivElement, OpportunityTableProps>(funct
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
                           <div>
                             <div className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant mb-1">
-                              Top Vendor
+                              Top Reseller
                             </div>
                             <div className="font-bold text-primary">{agency.topCompany}</div>
                           </div>
