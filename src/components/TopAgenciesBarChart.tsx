@@ -1,55 +1,110 @@
 "use client";
 
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  Cell,
+} from "recharts";
 import { AgencySummary } from "@/lib/types";
 import { formatCurrency } from "@/lib/data-utils";
 
-export default function TopAgenciesBarChart({ agencies }: { agencies: AgencySummary[] }) {
-  const top5 = [...agencies].sort((a, b) => b.totalSpend - a.totalSpend).slice(0, 5);
-  const max = top5[0]?.totalSpend || 1;
+function shortName(name: string): string {
+  if (name.length <= 22) return name;
+  return `${name.slice(0, 20)}…`;
+}
 
-  const shortName = (name: string) => {
-    if (name.length < 14) return name;
-    const words = name.split(/\s+/).filter(Boolean);
-    const initials = words
-      .filter((w) => /^[A-Z]/.test(w))
-      .slice(0, 4)
-      .map((w) => w[0])
-      .join("");
-    return initials.length >= 2 ? initials : name.slice(0, 12) + "…";
-  };
+export default function TopAgenciesBarChart({ agencies }: { agencies: AgencySummary[] }) {
+  const top = [...agencies].sort((a, b) => b.totalSpend - a.totalSpend).slice(0, 8);
+  const data = top.map((a) => ({
+    name: shortName(a.name),
+    fullName: a.name,
+    spend: a.totalSpend,
+    status: a.contractStatus,
+  }));
 
   return (
-    <div className="col-span-12 lg:col-span-7 bg-surface-container-lowest p-4 md:p-6 rounded-xl shadow-sm">
-      <div className="mb-6">
-        <h4 className="text-lg font-headline font-bold text-primary">Spending by Agency</h4>
-        <p className="text-xs text-on-surface-variant">Top 5 spending agencies</p>
+    <div className="col-span-12 lg:col-span-7 bg-surface-container-lowest border border-outline-variant rounded-[14px] p-5 md:p-6">
+      <div className="mb-4">
+        <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-on-surface-variant mb-0.5">
+          Agency Spend
+        </div>
+        <div className="font-headline text-[22px] leading-tight text-primary">
+          Top agencies by contract value
+        </div>
+        <p className="text-[12px] text-on-surface-variant mt-1">
+          {data.length} agencies shown, sorted by total spend
+        </p>
       </div>
-      <div className="flex items-end justify-between h-[200px] pt-4 px-2 gap-4">
-        {top5.map((agency) => {
-          const pct = (agency.totalSpend / max) * 100;
-          return (
-            <div key={agency.name} className="flex flex-col items-center gap-2 flex-1 h-full justify-end group">
-              <span className="text-[10px] font-bold text-primary opacity-0 group-hover:opacity-100 transition-opacity">
-                {formatCurrency(agency.totalSpend)}
-              </span>
-              <div
-                className="w-full bg-secondary/20 rounded-t-md relative flex flex-col justify-end"
-                style={{ height: `${Math.max(pct, 8)}%` }}
-              >
-                <div
-                  className="w-full bg-secondary rounded-t-md transition-all group-hover:bg-primary-container"
-                  style={{ height: "100%" }}
+      <div className="h-[320px] w-full">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart
+            data={data}
+            layout="vertical"
+            margin={{ top: 4, right: 32, left: 0, bottom: 4 }}
+          >
+            <defs>
+              <linearGradient id="barGrad" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stopColor="var(--accent)" stopOpacity="0.55" />
+                <stop offset="100%" stopColor="var(--accent)" stopOpacity="1" />
+              </linearGradient>
+            </defs>
+            <XAxis
+              type="number"
+              stroke="oklch(0.55 0.006 85)"
+              fontSize={11}
+              axisLine={false}
+              tickLine={false}
+              tickFormatter={(v) => formatCurrency(Number(v))}
+            />
+            <YAxis
+              type="category"
+              dataKey="name"
+              stroke="oklch(0.36 0.008 85)"
+              fontSize={11}
+              axisLine={false}
+              tickLine={false}
+              width={160}
+              tick={{ fontWeight: 500 }}
+            />
+            <Tooltip
+              cursor={{ fill: "oklch(0.95 0.02 160 / 0.4)" }}
+              contentStyle={{
+                backgroundColor: "#ffffff",
+                border: "1px solid oklch(0.91 0.006 85)",
+                borderRadius: "10px",
+                fontSize: "12px",
+                boxShadow: "0 12px 40px oklch(0.20 0.01 85 / 0.08)",
+              }}
+              formatter={(value: unknown) => [formatCurrency(Number(value)), "Spend"]}
+              labelFormatter={(_label, payload) => {
+                const full = payload?.[0]?.payload?.fullName;
+                return full || "";
+              }}
+            />
+            <Bar dataKey="spend" radius={[0, 6, 6, 0]} animationDuration={600}>
+              {data.map((entry, index) => (
+                <Cell
+                  key={index}
+                  fill={entry.status === "expiring" ? "oklch(0.55 0.14 150)" : "url(#barGrad)"}
                 />
-              </div>
-              <span
-                className="text-[9px] font-bold text-on-surface-variant text-center truncate w-full"
-                title={agency.name}
-              >
-                {shortName(agency.name)}
-              </span>
-            </div>
-          );
-        })}
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+      <div className="flex items-center gap-4 mt-3 text-[11px] text-on-surface-variant">
+        <span className="inline-flex items-center gap-1.5">
+          <span className="inline-block w-2.5 h-2.5 rounded-sm" style={{ background: "var(--accent)" }} />
+          Active / Dormant
+        </span>
+        <span className="inline-flex items-center gap-1.5">
+          <span className="inline-block w-2.5 h-2.5 rounded-sm" style={{ background: "oklch(0.55 0.14 150)" }} />
+          Renewal window
+        </span>
       </div>
     </div>
   );
