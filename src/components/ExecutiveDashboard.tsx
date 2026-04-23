@@ -18,7 +18,16 @@ import { getRegion, FL_REGIONS, Region } from "@/lib/regions";
 const allTransactions = rawData.transactions as Transaction[];
 const allStates = rawData.states as StateInfo[];
 
-export default function ExecutiveDashboard() {
+function formatCompany(slug: string): string {
+  const known: Record<string, string> = {
+    cohesity: "Cohesity",
+    crowdstrike: "CrowdStrike",
+  };
+  if (known[slug.toLowerCase()]) return known[slug.toLowerCase()];
+  return slug.charAt(0).toUpperCase() + slug.slice(1);
+}
+
+export default function ExecutiveDashboard({ company }: { company?: string } = {}) {
   const [search, setSearch] = useState("");
   const [selectedState, setSelectedState] = useState<string>("ALL");
   const [selectedRegion, setSelectedRegion] = useState<Region | "all">("all");
@@ -113,7 +122,7 @@ export default function ExecutiveDashboard() {
   return (
     <AppShell search={search} onSearchChange={setSearch}>
       <PageHeader
-        eyebrow="Market Overview"
+        eyebrow={company ? `Market Overview · ${formatCompany(company)}` : "Market Overview"}
         title="Executive dashboard"
         meta={
           selectedState === "ALL"
