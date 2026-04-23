@@ -6,11 +6,13 @@ import { usePathname } from "next/navigation";
 import styles from "./shell.module.css";
 
 const NAV_ITEMS = [
-  { label: "Dashboard", href: "/" },
+  { label: "Dashboard", href: "/cohesity" },
   { label: "Discovery", href: "/discovery" },
   { label: "Companies", href: "/companies" },
   { label: "Analytics", href: "/analytics" },
 ];
+
+const SHARED_ROUTES = ["/discovery", "/companies", "/analytics", "/settings", "/help"];
 
 const FOOTER_ITEMS = [
   { label: "Settings", href: "/settings" },
@@ -33,8 +35,13 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
   }, [open]);
 
   const isActive = (href: string) => {
-    if (href === "/") return pathname === "/";
-    return pathname.startsWith(href);
+    if (href === "/cohesity") {
+      // Dashboard nav is active on any company route (/cohesity, /crowdstrike, etc.)
+      if (pathname === "/") return false;
+      const isSharedRoute = SHARED_ROUTES.some((r) => pathname === r || pathname.startsWith(r + "/"));
+      return !isSharedRoute;
+    }
+    return pathname === href || pathname.startsWith(href + "/");
   };
 
   return (
@@ -48,7 +55,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
         className={`${styles.sidebar} ${open ? styles.open : ""}`}
         aria-hidden={!open && typeof window !== "undefined" && window.innerWidth < 1024}
       >
-        <Link href="/" onClick={onClose} className={styles.brand}>
+        <Link href="/cohesity" onClick={onClose} className={styles.brand}>
           <span className={styles.brandMark} aria-hidden="true">
             <svg viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
               <rect width="128" height="128" rx="28" ry="28" fill="#4A7A67" />
