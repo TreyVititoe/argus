@@ -100,8 +100,15 @@
 .btnLine:hover { border-color: var(--line-2); }
 .btnPrimary { background: var(--ink); color: #fff; }
 .btnPrimary:hover { transform: translateY(-1px); }
-.btnAccent { background: var(--accent); color: #fff; }
-.btnAccent:hover { transform: translateY(-1px); }
+.btnAccent {
+  background: oklch(0.68 0.07 160);
+  color: #fff;
+  font-weight: 700;
+}
+.btnAccent:hover {
+  transform: translateY(-1px);
+  background: oklch(0.64 0.08 160);
+}
 
 /* ---------- Hero ---------- */
 .hero {
