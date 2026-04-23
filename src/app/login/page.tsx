@@ -4,32 +4,33 @@ import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-const DOMAIN_TO_ROUTE: Record<string, string> = {
-  "cohesity.com": "/cohesity",
-};
-
-function routeForEmail(email: string): string | null {
-  const match = email.trim().toLowerCase().match(/@([a-z0-9.-]+)$/);
-  if (!match) return null;
-  return DOMAIN_TO_ROUTE[match[1]] ?? null;
-}
-
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  function onSubmit(e: FormEvent) {
+  async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
-    const route = routeForEmail(email);
-    if (!route) {
-      setError("This email isn't tied to an Argus account yet. Use your company email to continue.");
-      return;
-    }
     setSubmitting(true);
-    router.push(route);
+    try {
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(data.error || "Something went wrong — try again.");
+        setSubmitting(false);
+        return;
+      }
+      router.push(`/${data.tenant}`);
+    } catch {
+      setError("Network error — try again.");
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -82,6 +83,7 @@ export default function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@company.com"
               className="w-full px-4 py-3 rounded-[10px] border border-outline-variant bg-surface-container-lowest text-primary text-[14px] outline-none focus:border-[var(--accent-soft)] focus:shadow-[0_0_0_4px_var(--accent-bg)]"
+              disabled={submitting}
             />
           </label>
 
@@ -108,7 +110,10 @@ export default function LoginPage() {
           </button>
 
           <p className="mt-6 text-[12px] text-center" style={{ color: "var(--ink-4)" }}>
-            New to Argus? <a href="mailto:me@treyvititoe.com" className="text-[var(--accent)] hover:underline">Request access</a>
+            New to Argus?{" "}
+            <a href="mailto:me@treyvititoe.com" className="text-[var(--accent)] hover:underline">
+              Request access
+            </a>
           </p>
         </form>
       </section>
