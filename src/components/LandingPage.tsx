@@ -84,13 +84,9 @@ export default function LandingPage() {
           with the right pitch.
         </p>
         <div className={styles.heroCta}>
-          <a
-            className={`${styles.btn} ${styles.btnPrimary}`}
-            href="#demo"
-            onClick={(e) => smoothScroll(e, "demo")}
-          >
-            Request a demo →
-          </a>
+          <Link className={`${styles.btn} ${styles.btnAccent}`} href="/cohesity">
+            Sign In →
+          </Link>
           <a
             className={`${styles.btn} ${styles.btnLine}`}
             href="#product"
