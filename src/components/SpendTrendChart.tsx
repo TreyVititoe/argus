@@ -38,7 +38,7 @@ export default function SpendTrendChart({ transactions }: { transactions: Transa
           </div>
         </div>
       </div>
-      <div className="h-[240px] w-full chart-glow">
+      <div className="h-[320px] w-full chart-glow">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={data} margin={{ top: 10, right: 16, left: -10, bottom: 0 }}>
             <defs>
