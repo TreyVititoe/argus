@@ -18,7 +18,6 @@ import CompetitorsTable from "./CompetitorsTable";
 import OpportunityTable from "./OpportunityTable";
 import StateTabs from "./StateTabs";
 import PageHeader from "./PageHeader";
-import RegionMap from "./RegionMap";
 import { getRegion, FL_REGIONS, Region } from "@/lib/regions";
 
 const allTransactions = (rawData.transactions as Transaction[]).filter(
@@ -275,17 +274,9 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
         </div>
       )}
 
-      <div className="grid grid-cols-12 gap-4 mb-5">
-        <RegionMap
-          selectedState={selectedState}
-          selectedRegion={selectedRegion}
-          onSelectState={handleStateChange}
-          onSelectRegion={setSelectedRegion}
-          stateCounts={Object.fromEntries(allStates.map((s) => [s.code, s.transactionCount]))}
-        />
-        <div className="col-span-12 lg:col-span-8 grid grid-cols-2 lg:grid-cols-5 gap-3.5">
-          <KpiStat
-            label="Total Contract Value"
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3.5 mb-5">
+        <KpiStat
+          label="Total Contract Value"
           value={formatCurrency(totalSpend)}
           delta={yoyGrowth >= 0 ? `+${yoyGrowth.toFixed(0)}%` : `${yoyGrowth.toFixed(0)}%`}
           deltaType={yoyGrowth >= 0 ? "positive" : "negative"}
@@ -308,13 +299,12 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
           delta={formatCurrency(allCompanies[0]?.totalSpend || 0)}
           deltaType="neutral"
         />
-          <KpiStat
-            label="Top Vendor"
-            value={allVendors[0]?.name || "—"}
-            delta={formatCurrency(allVendors[0]?.totalSpend || 0)}
-            deltaType="neutral"
-          />
-        </div>
+        <KpiStat
+          label="Top Vendor"
+          value={allVendors[0]?.name || "—"}
+          delta={formatCurrency(allVendors[0]?.totalSpend || 0)}
+          deltaType="neutral"
+        />
       </div>
 
       <div className="grid grid-cols-12 gap-4 mb-5">
