@@ -1,121 +1,114 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
+import { Transaction, StateInfo } from "@/lib/types";
+import { summarizeByAgency, summarizeByCompany, formatCurrency } from "@/lib/data-utils";
+import rawData from "@/lib/data.json";
 import AppShell from "./AppShell";
+import KpiStat from "./KpiStat";
+import SpendTrendChart from "./SpendTrendChart";
+import InsightPanel from "./InsightPanel";
+import TopAgenciesBarChart from "./TopAgenciesBarChart";
+import CompetitorRadar from "./CompetitorRadar";
+import OpportunityTable from "./OpportunityTable";
+import StateTabs from "./StateTabs";
+import { getRegion, FL_REGIONS, Region } from "@/lib/regions";
 import styles from "./ExecutiveDashboard.module.css";
 
-type StateKey = "all" | "FL" | "GA" | "NC" | "VA" | "MD" | "TN" | "SC" | "DC" | "WV";
-
-type StateRow = {
-  tcv: string;
-  delta: string;
-  exp: string;
-  expAmt: string;
-  agencies: string;
-  of: string;
-  win: string;
-  deal: string;
-  txns: string;
-  vendor: string;
-  vendorAmt: string;
-  txnCount: string;
-};
-
-const STATE_DATA: Record<StateKey, StateRow> = {
-  all: { tcv: "$2.1B", delta: "+11%", exp: "451", expAmt: "$231.3M", agencies: "1,020", of: "of 1,704", win: "59.9%", deal: "$61.5K", txns: "33.9K txns", vendor: "CDWG", vendorAmt: "$233.4M", txnCount: "33,912" },
-  FL:  { tcv: "$842M", delta: "+14%", exp: "187", expAmt: "$98.2M",  agencies: "412",   of: "of 621",   win: "62.1%", deal: "$59.8K", txns: "14.1K txns", vendor: "CDWG", vendorAmt: "$92.4M",  txnCount: "14,086" },
-  GA:  { tcv: "$512M", delta: "+8%",  exp: "92",  expAmt: "$48.5M",  agencies: "238",   of: "of 352",   win: "58.4%", deal: "$62.1K", txns: "6.2K txns",  vendor: "Dell", vendorAmt: "$61.8M",  txnCount: "6,209" },
-  NC:  { tcv: "$388M", delta: "+6%",  exp: "78",  expAmt: "$41.1M",  agencies: "182",   of: "of 284",   win: "55.7%", deal: "$63.4K", txns: "5.6K txns",  vendor: "CDWG", vendorAmt: "$44.2M",  txnCount: "5,620" },
-  VA:  { tcv: "$214M", delta: "+13%", exp: "54",  expAmt: "$26.8M",  agencies: "98",    of: "of 158",   win: "61.2%", deal: "$65.2K", txns: "3.2K txns",  vendor: "SHI",  vendorAmt: "$22.9M",  txnCount: "3,190" },
-  MD:  { tcv: "$112M", delta: "+4%",  exp: "22",  expAmt: "$11.3M",  agencies: "54",    of: "of 142",   win: "57.0%", deal: "$57.9K", txns: "1.6K txns",  vendor: "CDWG", vendorAmt: "$9.8M",   txnCount: "1,590" },
-  TN:  { tcv: "$98M",  delta: "+9%",  exp: "18",  expAmt: "$5.4M",   agencies: "36",    of: "of 147",   win: "60.2%", deal: "$61.8K", txns: "1.6K txns",  vendor: "Dell", vendorAmt: "$14.1M",  txnCount: "1,578" },
-  SC:  { tcv: "$2.1B", delta: "+11%", exp: "451", expAmt: "$231.3M", agencies: "1,020", of: "of 1,704", win: "59.9%", deal: "$61.5K", txns: "33.9K txns", vendor: "CDWG", vendorAmt: "$233.4M", txnCount: "33,912" },
-  DC:  { tcv: "$2.1B", delta: "+11%", exp: "451", expAmt: "$231.3M", agencies: "1,020", of: "of 1,704", win: "59.9%", deal: "$61.5K", txns: "33.9K txns", vendor: "CDWG", vendorAmt: "$233.4M", txnCount: "33,912" },
-  WV:  { tcv: "$2.1B", delta: "+11%", exp: "451", expAmt: "$231.3M", agencies: "1,020", of: "of 1,704", win: "59.9%", deal: "$61.5K", txns: "33.9K txns", vendor: "CDWG", vendorAmt: "$233.4M", txnCount: "33,912" },
-};
-
-const CHART_DATA: Record<StateKey, number[]> = {
-  all: [180, 245, 328, 195, 262, 310, 95],
-  FL:  [75, 98, 138, 82, 109, 131, 42],
-  GA:  [44, 58, 82, 48, 64, 77, 24],
-  NC:  [38, 52, 71, 41, 55, 67, 20],
-  VA:  [22, 28, 40, 23, 31, 38, 12],
-  MD:  [12, 16, 21, 12, 16, 20, 6],
-  TN:  [10, 14, 18, 11, 14, 18, 5],
-  SC:  [180, 245, 328, 195, 262, 310, 95],
-  DC:  [180, 245, 328, 195, 262, 310, 95],
-  WV:  [180, 245, 328, 195, 262, 310, 95],
-};
-
-const YEARS = ["2018", "2019", "2020", "2021", "2022", "2023", "2024", "2025"];
-
-const PRIMARY_PILLS: { key: StateKey; label: string; count: string }[] = [
-  { key: "all", label: "All states", count: "33,912" },
-  { key: "FL", label: "FL", count: "14,086" },
-  { key: "GA", label: "GA", count: "6,209" },
-  { key: "NC", label: "NC", count: "5,620" },
-  { key: "VA", label: "VA", count: "3,190" },
-  { key: "MD", label: "MD", count: "1,590" },
-  { key: "TN", label: "TN", count: "1,578" },
-];
-
-const MORE_PILLS: { key: StateKey; label: string; count: string }[] = [
-  { key: "SC", label: "SC", count: "504" },
-  { key: "DC", label: "DC", count: "501" },
-  { key: "WV", label: "WV", count: "234" },
-];
-
-const CHART_W = 700;
-const CHART_H = 240;
-const PAD_L = 54;
-const PAD_R = 18;
-const PAD_T = 18;
-const PAD_B = 32;
-const INNER_W = CHART_W - PAD_L - PAD_R;
-const INNER_H = CHART_H - PAD_T - PAD_B;
-const HIGHLIGHT_INDEX = 4;
-
-function smoothPath(points: [number, number][]): string {
-  if (points.length < 2) return "";
-  let d = `M ${points[0][0]} ${points[0][1]}`;
-  for (let i = 0; i < points.length - 1; i++) {
-    const p0 = points[i - 1] || points[i];
-    const p1 = points[i];
-    const p2 = points[i + 1];
-    const p3 = points[i + 2] || p2;
-    const cp1x = p1[0] + (p2[0] - p0[0]) / 6;
-    const cp1y = p1[1] + (p2[1] - p0[1]) / 6;
-    const cp2x = p2[0] - (p3[0] - p1[0]) / 6;
-    const cp2y = p2[1] - (p3[1] - p1[1]) / 6;
-    d += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p2[0]} ${p2[1]}`;
-  }
-  return d;
-}
+const allTransactions = rawData.transactions as Transaction[];
+const allStates = rawData.states as StateInfo[];
 
 export default function ExecutiveDashboard() {
-  const [activeState, setActiveState] = useState<StateKey>("all");
-  const [showMore, setShowMore] = useState(false);
   const [search, setSearch] = useState("");
+  const [selectedState, setSelectedState] = useState<string>("ALL");
+  const [selectedRegion, setSelectedRegion] = useState<Region | "all">("all");
+  const [opportunityFilter, setOpportunityFilter] = useState<"all" | "expiring" | "active" | "dormant">("all");
+  const opportunitiesRef = useRef<HTMLDivElement>(null);
 
-  const data = STATE_DATA[activeState];
-  const series = CHART_DATA[activeState];
+  const handleViewAllOpportunities = () => {
+    setOpportunityFilter("expiring");
+    setTimeout(() => {
+      opportunitiesRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 50);
+  };
 
-  const chart = useMemo(() => {
-    const pts = [...series, series[series.length - 1] * 0.3];
-    const max = Math.max(...pts) * 1.15;
-    const x = (i: number) => PAD_L + (i / (pts.length - 1)) * INNER_W;
-    const y = (v: number) => PAD_T + INNER_H - (v / max) * INNER_H;
-    const coords: [number, number][] = pts.map((v, i) => [x(i), y(v)]);
-    const linePath = smoothPath(coords);
-    const areaPath = `${linePath} L ${coords[coords.length - 1][0]} ${PAD_T + INNER_H} L ${coords[0][0]} ${PAD_T + INNER_H} Z`;
-    const maxM = Math.ceil(max);
-    const ticks = [0, 90, 180, 270, 360].filter((t) => t <= maxM).map((t) => ({ t, y: y(t) }));
-    const xLabels = YEARS.map((yr, i) => ({ yr, x: x(i) }));
-    return { linePath, areaPath, ticks, xLabels, coords };
-  }, [series]);
+  const filteredTransactions = useMemo(() => {
+    let base = allTransactions;
+    if (selectedState !== "ALL") {
+      base = base.filter((t) => t.stateCode === selectedState);
+    }
+    if (selectedState === "FL" && selectedRegion !== "all") {
+      base = base.filter((t) => getRegion(t.agency, t.stateCode) === selectedRegion);
+    }
+    if (!search.trim()) return base;
+    const q = search.toLowerCase();
+    return base.filter(
+      (t) =>
+        t.agency.toLowerCase().includes(q) ||
+        t.company.toLowerCase().includes(q) ||
+        t.keyword.toLowerCase().includes(q)
+    );
+  }, [search, selectedState, selectedRegion]);
 
-  const statesCount = activeState === "all" ? 9 : 1;
-  const pillList = showMore ? [...PRIMARY_PILLS, ...MORE_PILLS] : PRIMARY_PILLS;
+  const handleStateChange = (code: string) => {
+    setSelectedState(code);
+    setSelectedRegion("all");
+  };
+
+  const flRegionCounts = useMemo(() => {
+    if (selectedState !== "FL") return null;
+    const counts: Record<string, number> = { all: 0 };
+    for (const r of FL_REGIONS) counts[r] = 0;
+    const flTx = allTransactions.filter((t) => t.stateCode === "FL");
+    counts.all = flTx.length;
+    for (const t of flTx) {
+      const r = getRegion(t.agency, t.stateCode);
+      if (r) counts[r] = (counts[r] || 0) + 1;
+    }
+    return counts;
+  }, [selectedState]);
+
+  const allAgencies = useMemo(() => summarizeByAgency(filteredTransactions), [filteredTransactions]);
+  const allCompanies = useMemo(() => summarizeByCompany(filteredTransactions), [filteredTransactions]);
+
+  const totalSpend = useMemo(
+    () => filteredTransactions.reduce((sum, t) => sum + t.totalPrice, 0),
+    [filteredTransactions]
+  );
+
+  const expiringStats = useMemo(() => {
+    const expiring = allAgencies.filter((a) => a.contractStatus === "expiring");
+    return {
+      count: expiring.length,
+      totalValue: expiring.reduce((s, a) => s + a.totalSpend, 0),
+    };
+  }, [allAgencies]);
+
+  const activeCount = useMemo(
+    () => allAgencies.filter((a) => a.contractStatus === "active").length,
+    [allAgencies]
+  );
+
+  const avgDeal = useMemo(() => {
+    if (filteredTransactions.length === 0) return 0;
+    return totalSpend / filteredTransactions.length;
+  }, [totalSpend, filteredTransactions]);
+
+  const winRate = useMemo(() => {
+    if (allAgencies.length === 0) return 0;
+    return (activeCount / allAgencies.length) * 100;
+  }, [activeCount, allAgencies]);
+
+  const yoyGrowth = useMemo(() => {
+    const byYear = new Map<number, number>();
+    for (const t of filteredTransactions) {
+      byYear.set(t.year, (byYear.get(t.year) || 0) + t.totalPrice);
+    }
+    const y2024 = byYear.get(2024) || 0;
+    const y2023 = byYear.get(2023) || 0;
+    if (y2023 === 0) return 0;
+    return ((y2024 - y2023) / y2023) * 100;
+  }, [filteredTransactions]);
 
   return (
     <AppShell search={search} onSearchChange={setSearch}>
@@ -123,165 +116,115 @@ export default function ExecutiveDashboard() {
       <div className={styles.h1Row}>
         <h1 className={styles.headline}>Executive dashboard</h1>
         <div className={styles.h1Meta}>
-          {statesCount} states · {data.txnCount} transactions
+          {selectedState === "ALL"
+            ? `${allStates.length} states · ${allTransactions.length.toLocaleString()} transactions`
+            : allStates.find((s) => s.code === selectedState)?.name || selectedState}
         </div>
       </div>
 
-      <div className={styles.pills}>
-        {pillList.map((p) => {
-          const isActive = activeState === p.key;
-          return (
-            <button
-              key={p.key}
-              type="button"
-              className={`${styles.pill} ${isActive ? styles.pillActive : ""}`}
-              onClick={() => setActiveState(p.key)}
-            >
-              {p.label}
-              <span className={styles.pillCount}>{p.count}</span>
-            </button>
-          );
-        })}
-        {!showMore && (
-          <button
-            type="button"
-            className={`${styles.pill} ${styles.pillMore}`}
-            onClick={() => setShowMore(true)}
-          >
-            +3 more
-          </button>
-        )}
+      <div className="mb-7">
+        <StateTabs
+          states={allStates}
+          selected={selectedState}
+          onSelect={handleStateChange}
+          total={allTransactions.length}
+        />
       </div>
 
-      <div className={styles.kpiGrid}>
-        <Kpi label={<>Total contract<br />value</>} num={data.tcv}>
-          <span className={`${styles.kpiSub} ${styles.kpiSubPos}`}>{data.delta}</span>
-        </Kpi>
-        <Kpi label="Expiring contracts" num={data.exp}>
-          <span className={styles.kpiSub}>{data.expAmt}</span>
-        </Kpi>
-        <Kpi label="Active agencies" num={data.agencies}>
-          <span className={styles.kpiSub}>{data.of}</span>
-        </Kpi>
-        <Kpi label="Win rate" num={data.win}>
-          <span className={`${styles.kpiSub} ${styles.kpiSubPos}`}>
-            <span className={styles.tri} />
+      {selectedState === "FL" && flRegionCounts && (
+        <div className="mb-7 flex items-center flex-wrap gap-2.5">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-on-surface-variant mr-2">
+            Region
           </span>
-        </Kpi>
-        <Kpi label="Avg deal size" num={data.deal}>
-          <span className={styles.kpiSub}>{data.txns}</span>
-        </Kpi>
-        <Kpi label="Top vendor" num={data.vendor}>
-          <span className={styles.kpiSub}>{data.vendorAmt}</span>
-        </Kpi>
+          {(["all", ...FL_REGIONS] as const).map((r) => {
+            const isActive = selectedRegion === r;
+            return (
+              <button
+                key={r}
+                onClick={() => setSelectedRegion(r as Region | "all")}
+                className={`shrink-0 inline-flex items-center gap-2.5 pl-4 pr-3.5 py-2 rounded-full text-[13px] font-medium border transition-colors ${
+                  isActive
+                    ? "bg-primary border-primary text-white"
+                    : "bg-surface-container-lowest border-outline-variant text-primary hover:border-[oklch(0.88_0.007_85)]"
+                }`}
+              >
+                {r === "all" ? "All FL" : r}
+                <span
+                  className={`text-[12px] font-medium rounded-full px-2 py-0.5 ${
+                    isActive
+                      ? "bg-white/12 text-white/80"
+                      : "bg-surface-container text-on-surface-variant"
+                  }`}
+                >
+                  {(flRegionCounts[r] || 0).toLocaleString()}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3.5 mb-5">
+        <KpiStat
+          label="Total Contract Value"
+          value={formatCurrency(totalSpend)}
+          delta={yoyGrowth >= 0 ? `+${yoyGrowth.toFixed(0)}%` : `${yoyGrowth.toFixed(0)}%`}
+          deltaType={yoyGrowth >= 0 ? "positive" : "negative"}
+        />
+        <KpiStat
+          label="Expiring Contracts"
+          value={String(expiringStats.count)}
+          delta={formatCurrency(expiringStats.totalValue)}
+          deltaType="positive"
+        />
+        <KpiStat
+          label="Active Agencies"
+          value={String(activeCount)}
+          delta={`${allAgencies.length} total`}
+          deltaType="neutral"
+        />
+        <KpiStat
+          label="Win Rate"
+          value={`${winRate.toFixed(1)}%`}
+          delta={winRate >= 50 ? "+" : "-"}
+          deltaType={winRate >= 50 ? "positive" : "negative"}
+        />
+        <KpiStat
+          label="Avg Deal Size"
+          value={formatCurrency(avgDeal)}
+          delta={`${filteredTransactions.length.toLocaleString()} txns`}
+          deltaType="neutral"
+        />
+        <KpiStat
+          label="Top Vendor"
+          value={allCompanies[0]?.name.split(/\s+/)[0] || "—"}
+          delta={formatCurrency(allCompanies[0]?.totalSpend || 0)}
+          deltaType="neutral"
+        />
       </div>
 
-      <div className={styles.split}>
-        <div className={styles.chartCard}>
-          <div className={styles.chartHead}>
-            <div className={styles.chartTitle}>Procurement spending trends</div>
-            <div className={styles.chartSub}>Aggregated spend across all agencies by year</div>
-          </div>
-          <div className={styles.chartWrap}>
-            <svg viewBox={`0 0 ${CHART_W} ${CHART_H}`} preserveAspectRatio="none">
-              <defs>
-                <linearGradient id="execAreaGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="var(--accent)" stopOpacity="0.18" />
-                  <stop offset="100%" stopColor="var(--accent)" stopOpacity="0.01" />
-                </linearGradient>
-              </defs>
-              {chart.ticks.map(({ t, y }) => (
-                <g key={t}>
-                  <line
-                    x1={PAD_L}
-                    x2={CHART_W - PAD_R}
-                    y1={y}
-                    y2={y}
-                    stroke="var(--line)"
-                    strokeDasharray="2 4"
-                  />
-                  <text
-                    x={PAD_L - 8}
-                    y={y + 4}
-                    textAnchor="end"
-                    fontSize="10"
-                    fill="var(--ink-4)"
-                    fontFamily="Inter"
-                  >
-                    ${t}M
-                  </text>
-                </g>
-              ))}
-              <path d={chart.areaPath} fill="url(#execAreaGrad)" />
-              <path
-                d={chart.linePath}
-                fill="none"
-                stroke="var(--accent)"
-                strokeWidth="2.2"
-                strokeLinejoin="round"
-                strokeLinecap="round"
-              />
-              <circle
-                cx={chart.coords[HIGHLIGHT_INDEX][0]}
-                cy={chart.coords[HIGHLIGHT_INDEX][1]}
-                r="6"
-                fill="#fff"
-                stroke="var(--accent)"
-                strokeWidth="2.2"
-              />
-              {chart.xLabels.map(({ yr, x }) => (
-                <text
-                  key={yr}
-                  x={x}
-                  y={CHART_H - 10}
-                  textAnchor="middle"
-                  fontSize="10"
-                  fill="var(--ink-4)"
-                  fontFamily="Inter"
-                >
-                  {yr}
-                </text>
-              ))}
-            </svg>
-          </div>
-        </div>
+      <div className="grid grid-cols-12 gap-4 mb-5">
+        <SpendTrendChart transactions={filteredTransactions} />
+        <InsightPanel
+          expiringCount={expiringStats.count}
+          expiringValue={expiringStats.totalValue}
+          onViewAll={handleViewAllOpportunities}
+        />
+      </div>
 
-        <aside className={styles.alertCard}>
-          <span className={styles.alertBadge}>Renewal alert</span>
-          <div className={styles.alertTitle}>
-            {data.exp} contracts
-            <br />
-            expiring soon
-          </div>
-          <div className={styles.alertBody}>
-            {data.expAmt} in historical spend is in the renewal window. These agencies are prime
-            targets for outreach now.
-          </div>
-          <button type="button" className={styles.alertCta}>
-            View all opportunities →
-          </button>
-        </aside>
+      <div className="grid grid-cols-12 gap-4 mb-5">
+        <TopAgenciesBarChart agencies={allAgencies} />
+        <CompetitorRadar transactions={filteredTransactions} />
+      </div>
+
+      <div className="grid grid-cols-12 gap-4">
+        <OpportunityTable
+          ref={opportunitiesRef}
+          agencies={allAgencies}
+          filter={opportunityFilter}
+          onFilterChange={setOpportunityFilter}
+        />
       </div>
     </AppShell>
-  );
-}
-
-function Kpi({
-  label,
-  num,
-  children,
-}: {
-  label: React.ReactNode;
-  num: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className={styles.kpi}>
-      <div className={styles.kpiLabel}>{label}</div>
-      <div className={styles.kpiValue}>
-        <span className={styles.kpiNum}>{num}</span>
-        {children}
-      </div>
-    </div>
   );
 }
