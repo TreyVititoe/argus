@@ -142,6 +142,23 @@ export function summarizeByCompany(transactions: Transaction[]): CompanySummary[
   });
 }
 
+export function summarizeByVendor(transactions: Transaction[]): { name: string; totalSpend: number; transactionCount: number }[] {
+  const map = new Map<string, { totalSpend: number; transactionCount: number }>();
+  for (const t of transactions) {
+    if (!t.competitor) continue;
+    let entry = map.get(t.competitor);
+    if (!entry) {
+      entry = { totalSpend: 0, transactionCount: 0 };
+      map.set(t.competitor, entry);
+    }
+    entry.totalSpend += t.totalPrice;
+    entry.transactionCount += 1;
+  }
+  return Array.from(map.entries())
+    .map(([name, e]) => ({ name, ...e }))
+    .sort((a, b) => b.totalSpend - a.totalSpend);
+}
+
 export function formatCurrency(amount: number): string {
   if (amount >= 1_000_000_000) return `$${(amount / 1_000_000_000).toFixed(1)}B`;
   if (amount >= 1_000_000) return `$${(amount / 1_000_000).toFixed(1)}M`;
