@@ -28,17 +28,25 @@ const allTransactions = rawData.transactions as Transaction[];
 const allStates = rawData.states as StateInfo[];
 
 const COLORS = [
-  "#2552ca", "#8b5cf6", "#ec4899", "#f59e0b", "#10b981",
-  "#06b6d4", "#f97316", "#6366f1", "#14b8a6", "#e11d48",
+  "oklch(0.50 0.08 160)",
+  "oklch(0.55 0.12 40)",
+  "oklch(0.50 0.08 240)",
+  "oklch(0.70 0.14 75)",
+  "oklch(0.55 0.10 140)",
+  "oklch(0.50 0.06 200)",
+  "oklch(0.55 0.12 20)",
+  "oklch(0.55 0.08 280)",
+  "oklch(0.60 0.09 180)",
+  "oklch(0.50 0.12 350)",
 ];
 
 const tooltipStyle = {
   contentStyle: {
     backgroundColor: "#ffffff",
-    border: "none",
-    borderRadius: "8px",
+    border: "1px solid oklch(0.91 0.006 85)",
+    borderRadius: "10px",
     fontSize: "12px",
-    boxShadow: "0px 12px 40px rgba(13, 28, 47, 0.08)",
+    boxShadow: "0px 12px 40px oklch(0.20 0.01 85 / 0.08)",
   },
 };
 
@@ -159,14 +167,14 @@ export default function AnalyticsView() {
               <AreaChart data={spendByYear} margin={{ top: 10, right: 16, left: -10, bottom: 0 }}>
                 <defs>
                   <linearGradient id="analyticsGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#2552ca" stopOpacity={0.3} />
-                    <stop offset="100%" stopColor="#2552ca" stopOpacity={0} />
+                    <stop offset="0%" stopColor="oklch(0.50 0.08 160)" stopOpacity={0.3} />
+                    <stop offset="100%" stopColor="oklch(0.50 0.08 160)" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e6eeff" vertical={false} />
-                <XAxis dataKey="year" stroke="#74777d" fontSize={11} axisLine={false} tickLine={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.91 0.006 85)" vertical={false} />
+                <XAxis dataKey="year" stroke="oklch(0.55 0.006 85)" fontSize={11} axisLine={false} tickLine={false} />
                 <YAxis
-                  stroke="#74777d"
+                  stroke="oklch(0.55 0.006 85)"
                   fontSize={11}
                   tickFormatter={(v) => formatCurrency(v)}
                   axisLine={false}
@@ -179,7 +187,7 @@ export default function AnalyticsView() {
                 <Area
                   type="monotone"
                   dataKey="spend"
-                  stroke="#2552ca"
+                  stroke="oklch(0.50 0.08 160)"
                   strokeWidth={3}
                   fill="url(#analyticsGradient)"
                 />
@@ -199,10 +207,10 @@ export default function AnalyticsView() {
           <div className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={keywordTrends.data} margin={{ top: 10, right: 16, left: -10, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e6eeff" vertical={false} />
-                <XAxis dataKey="year" stroke="#74777d" fontSize={11} axisLine={false} tickLine={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.91 0.006 85)" vertical={false} />
+                <XAxis dataKey="year" stroke="oklch(0.55 0.006 85)" fontSize={11} axisLine={false} tickLine={false} />
                 <YAxis
-                  stroke="#74777d"
+                  stroke="oklch(0.55 0.006 85)"
                   fontSize={11}
                   tickFormatter={(v) => formatCurrency(v)}
                   axisLine={false}
@@ -212,7 +220,7 @@ export default function AnalyticsView() {
                   {...tooltipStyle}
                   formatter={(value: unknown) => [formatCurrency(Number(value))]}
                 />
-                <Legend wrapperStyle={{ fontSize: "11px", color: "#6b7280" }} />
+                <Legend wrapperStyle={{ fontSize: "11px", color: "oklch(0.55 0.006 85)" }} />
                 {keywordTrends.keywords.map((kw, i) => (
                   <Line
                     key={kw}
@@ -240,10 +248,10 @@ export default function AnalyticsView() {
             <div className="h-[260px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={competitorShare} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e6eeff" horizontal={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.91 0.006 85)" horizontal={false} />
                   <XAxis
                     type="number"
-                    stroke="#74777d"
+                    stroke="oklch(0.55 0.006 85)"
                     fontSize={11}
                     tickFormatter={(v) => formatCurrency(v)}
                     axisLine={false}
@@ -252,7 +260,7 @@ export default function AnalyticsView() {
                   <YAxis
                     type="category"
                     dataKey="name"
-                    stroke="#74777d"
+                    stroke="oklch(0.55 0.006 85)"
                     fontSize={10}
                     width={110}
                     axisLine={false}
@@ -262,7 +270,7 @@ export default function AnalyticsView() {
                     {...tooltipStyle}
                     formatter={(value: unknown) => [formatCurrency(Number(value)), "Spend"]}
                   />
-                  <Bar dataKey="value" fill="#2552ca" radius={[0, 4, 4, 0]} />
+                  <Bar dataKey="value" fill="oklch(0.50 0.08 160)" radius={[0, 4, 4, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -288,7 +296,7 @@ export default function AnalyticsView() {
                     label={({ name, percent }: { name?: string; percent?: number }) =>
                       `${name || ""} ${((percent || 0) * 100).toFixed(0)}%`
                     }
-                    labelLine={{ stroke: "#9ca3af" }}
+                    labelLine={{ stroke: "oklch(0.72 0.005 85)" }}
                     fontSize={10}
                   >
                     {typeBreakdown.map((_, i) => (
@@ -316,10 +324,10 @@ export default function AnalyticsView() {
           <div className="h-[260px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={priceRangeBreakdown}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e6eeff" vertical={false} />
-                <XAxis dataKey="name" stroke="#74777d" fontSize={10} axisLine={false} tickLine={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.91 0.006 85)" vertical={false} />
+                <XAxis dataKey="name" stroke="oklch(0.55 0.006 85)" fontSize={10} axisLine={false} tickLine={false} />
                 <YAxis
-                  stroke="#74777d"
+                  stroke="oklch(0.55 0.006 85)"
                   fontSize={11}
                   tickFormatter={(v) => formatCurrency(v)}
                   axisLine={false}

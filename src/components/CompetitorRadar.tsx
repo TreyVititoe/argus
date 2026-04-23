@@ -35,15 +35,15 @@ export default function CompetitorRadar({ transactions }: { transactions: Transa
       <div className="h-[200px]">
         <ResponsiveContainer width="100%" height="100%">
           <RadarChart data={data} cx="50%" cy="50%" outerRadius="75%">
-            <PolarGrid stroke="#c4c6cd" />
+            <PolarGrid stroke="oklch(0.91 0.006 85)" />
             <PolarAngleAxis
               dataKey="name"
-              tick={{ fontSize: 10, fill: "#44474c", fontWeight: 600 }}
+              tick={{ fontSize: 10, fill: "oklch(0.36 0.008 85)", fontWeight: 600 }}
             />
             <Radar
               dataKey="value"
-              stroke="#2552ca"
-              fill="#2552ca"
+              stroke="oklch(0.50 0.08 160)"
+              fill="oklch(0.50 0.08 160)"
               fillOpacity={0.4}
               strokeWidth={2}
             />

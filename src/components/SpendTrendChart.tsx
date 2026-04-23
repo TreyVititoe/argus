@@ -43,44 +43,44 @@ export default function SpendTrendChart({ transactions }: { transactions: Transa
           <AreaChart data={data} margin={{ top: 10, right: 16, left: -10, bottom: 0 }}>
             <defs>
               <linearGradient id="spendGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#2552ca" stopOpacity={0.25} />
-                <stop offset="100%" stopColor="#2552ca" stopOpacity={0} />
+                <stop offset="0%" stopColor="oklch(0.50 0.08 160)" stopOpacity={0.25} />
+                <stop offset="100%" stopColor="oklch(0.50 0.08 160)" stopOpacity={0} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e6eeff" vertical={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.91 0.006 85)" vertical={false} />
             <XAxis
               dataKey="year"
-              stroke="#74777d"
+              stroke="oklch(0.55 0.006 85)"
               fontSize={11}
               axisLine={false}
               tickLine={false}
             />
             <YAxis
-              stroke="#74777d"
+              stroke="oklch(0.55 0.006 85)"
               fontSize={11}
               tickFormatter={(v) => formatCurrency(v)}
               axisLine={false}
               tickLine={false}
             />
             <Tooltip
-              cursor={{ stroke: "#2552ca", strokeOpacity: 0.2 }}
+              cursor={{ stroke: "oklch(0.50 0.08 160)", strokeOpacity: 0.2 }}
               contentStyle={{
                 backgroundColor: "#ffffff",
-                border: "none",
-                borderRadius: "8px",
+                border: "1px solid oklch(0.91 0.006 85)",
+                borderRadius: "10px",
                 fontSize: "12px",
-                boxShadow: "0px 12px 40px rgba(13, 28, 47, 0.08)",
+                boxShadow: "0px 12px 40px oklch(0.20 0.01 85 / 0.08)",
               }}
               formatter={(value: unknown) => [formatCurrency(Number(value)), "Spend"]}
             />
             <Area
               type="monotone"
               dataKey="spend"
-              stroke="#2552ca"
+              stroke="oklch(0.50 0.08 160)"
               strokeWidth={4}
               fill="url(#spendGradient)"
               dot={false}
-              activeDot={{ r: 6, fill: "#2552ca" }}
+              activeDot={{ r: 6, fill: "oklch(0.50 0.08 160)" }}
             />
           </AreaChart>
         </ResponsiveContainer>

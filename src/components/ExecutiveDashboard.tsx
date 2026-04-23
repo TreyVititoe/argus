@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { useState, useMemo } from "react";
+import AppShell from "./AppShell";
 import styles from "./ExecutiveDashboard.module.css";
 
 type StateKey = "all" | "FL" | "GA" | "NC" | "VA" | "MD" | "TN" | "SC" | "DC" | "WV";
@@ -66,13 +65,6 @@ const MORE_PILLS: { key: StateKey; label: string; count: string }[] = [
   { key: "WV", label: "WV", count: "234" },
 ];
 
-const NAV_ITEMS = [
-  { label: "Dashboard", href: "/" },
-  { label: "Discovery", href: "/discovery" },
-  { label: "Companies", href: "/companies" },
-  { label: "Analytics", href: "/analytics" },
-];
-
 const CHART_W = 700;
 const CHART_H = 240;
 const PAD_L = 54;
@@ -100,25 +92,10 @@ function smoothPath(points: [number, number][]): string {
   return d;
 }
 
-function useBodyBackground(color: string) {
-  useEffect(() => {
-    const prevBody = document.body.style.background;
-    const prevHtml = document.documentElement.style.background;
-    document.body.style.background = color;
-    document.documentElement.style.background = color;
-    return () => {
-      document.body.style.background = prevBody;
-      document.documentElement.style.background = prevHtml;
-    };
-  }, [color]);
-}
-
 export default function ExecutiveDashboard() {
   const [activeState, setActiveState] = useState<StateKey>("all");
   const [showMore, setShowMore] = useState(false);
-  const pathname = usePathname();
-
-  useBodyBackground("oklch(0.985 0.004 85)");
+  const [search, setSearch] = useState("");
 
   const data = STATE_DATA[activeState];
   const series = CHART_DATA[activeState];
@@ -141,213 +118,151 @@ export default function ExecutiveDashboard() {
   const pillList = showMore ? [...PRIMARY_PILLS, ...MORE_PILLS] : PRIMARY_PILLS;
 
   return (
-    <div className={styles.app}>
-      <aside className={styles.sidebar}>
-        <div className={styles.brand}>
-          <div className={styles.brandMark} aria-hidden="true" />
-          <div className={styles.brandName}>Argus</div>
+    <AppShell search={search} onSearchChange={setSearch}>
+      <div className={styles.eyebrow}>Market Overview</div>
+      <div className={styles.h1Row}>
+        <h1 className={styles.headline}>Executive dashboard</h1>
+        <div className={styles.h1Meta}>
+          {statesCount} states · {data.txnCount} transactions
         </div>
+      </div>
 
-        <nav className={styles.nav}>
-          {NAV_ITEMS.map((item) => {
-            const isActive = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`${styles.navItem} ${isActive ? styles.active : ""}`}
-              >
-                <span className={styles.dot} />
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
-
-        <button type="button" className={styles.newAnalysis}>
-          + New analysis
-        </button>
-
-        <div className={styles.sidebarFooter}>
-          <Link href="/settings" className={styles.footerLink}>
-            Settings
-          </Link>
-          <Link href="/help" className={styles.footerLink}>
-            Help
-          </Link>
-        </div>
-      </aside>
-
-      <main className={styles.main}>
-        <div className={styles.topbar}>
-          <div className={styles.search}>
-            <svg
-              className={styles.searchIcon}
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <circle cx="11" cy="11" r="7" />
-              <path d="m21 21-4.3-4.3" />
-            </svg>
-            <input
-              className={styles.searchInput}
-              placeholder="Search agencies, vendors, contracts…"
-            />
-          </div>
-          <div className={styles.avatar} title="Alexander Wright">AW</div>
-        </div>
-
-        <div className={styles.eyebrow}>Market Overview</div>
-        <div className={styles.h1Row}>
-          <h1 className={styles.headline}>Executive dashboard</h1>
-          <div className={styles.h1Meta}>
-            {statesCount} states · {data.txnCount} transactions
-          </div>
-        </div>
-
-        <div className={styles.pills}>
-          {pillList.map((p) => {
-            const isActive = activeState === p.key;
-            return (
-              <button
-                key={p.key}
-                type="button"
-                className={`${styles.pill} ${isActive ? styles.pillActive : ""}`}
-                onClick={() => setActiveState(p.key)}
-              >
-                {p.label}
-                <span className={styles.pillCount}>{p.count}</span>
-              </button>
-            );
-          })}
-          {!showMore && (
+      <div className={styles.pills}>
+        {pillList.map((p) => {
+          const isActive = activeState === p.key;
+          return (
             <button
+              key={p.key}
               type="button"
-              className={`${styles.pill} ${styles.pillMore}`}
-              onClick={() => setShowMore(true)}
+              className={`${styles.pill} ${isActive ? styles.pillActive : ""}`}
+              onClick={() => setActiveState(p.key)}
             >
-              +3 more
+              {p.label}
+              <span className={styles.pillCount}>{p.count}</span>
             </button>
-          )}
-        </div>
+          );
+        })}
+        {!showMore && (
+          <button
+            type="button"
+            className={`${styles.pill} ${styles.pillMore}`}
+            onClick={() => setShowMore(true)}
+          >
+            +3 more
+          </button>
+        )}
+      </div>
 
-        <div className={styles.kpiGrid}>
-          <Kpi label={<>Total contract<br />value</>} num={data.tcv}>
-            <span className={`${styles.kpiSub} ${styles.kpiSubPos}`}>{data.delta}</span>
-          </Kpi>
-          <Kpi label="Expiring contracts" num={data.exp}>
-            <span className={styles.kpiSub}>{data.expAmt}</span>
-          </Kpi>
-          <Kpi label="Active agencies" num={data.agencies}>
-            <span className={styles.kpiSub}>{data.of}</span>
-          </Kpi>
-          <Kpi label="Win rate" num={data.win}>
-            <span className={`${styles.kpiSub} ${styles.kpiSubPos}`}>
-              <span className={styles.tri} />
-            </span>
-          </Kpi>
-          <Kpi label="Avg deal size" num={data.deal}>
-            <span className={styles.kpiSub}>{data.txns}</span>
-          </Kpi>
-          <Kpi label="Top vendor" num={data.vendor}>
-            <span className={styles.kpiSub}>{data.vendorAmt}</span>
-          </Kpi>
-        </div>
+      <div className={styles.kpiGrid}>
+        <Kpi label={<>Total contract<br />value</>} num={data.tcv}>
+          <span className={`${styles.kpiSub} ${styles.kpiSubPos}`}>{data.delta}</span>
+        </Kpi>
+        <Kpi label="Expiring contracts" num={data.exp}>
+          <span className={styles.kpiSub}>{data.expAmt}</span>
+        </Kpi>
+        <Kpi label="Active agencies" num={data.agencies}>
+          <span className={styles.kpiSub}>{data.of}</span>
+        </Kpi>
+        <Kpi label="Win rate" num={data.win}>
+          <span className={`${styles.kpiSub} ${styles.kpiSubPos}`}>
+            <span className={styles.tri} />
+          </span>
+        </Kpi>
+        <Kpi label="Avg deal size" num={data.deal}>
+          <span className={styles.kpiSub}>{data.txns}</span>
+        </Kpi>
+        <Kpi label="Top vendor" num={data.vendor}>
+          <span className={styles.kpiSub}>{data.vendorAmt}</span>
+        </Kpi>
+      </div>
 
-        <div className={styles.split}>
-          <div className={styles.chartCard}>
-            <div className={styles.chartHead}>
-              <div className={styles.chartTitle}>Procurement spending trends</div>
-              <div className={styles.chartSub}>Aggregated spend across all agencies by year</div>
-            </div>
-            <div className={styles.chartWrap}>
-              <svg viewBox={`0 0 ${CHART_W} ${CHART_H}`} preserveAspectRatio="none">
-                <defs>
-                  <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="var(--accent)" stopOpacity="0.18" />
-                    <stop offset="100%" stopColor="var(--accent)" stopOpacity="0.01" />
-                  </linearGradient>
-                </defs>
-                {chart.ticks.map(({ t, y }) => (
-                  <g key={t}>
-                    <line
-                      x1={PAD_L}
-                      x2={CHART_W - PAD_R}
-                      y1={y}
-                      y2={y}
-                      stroke="var(--line)"
-                      strokeDasharray="2 4"
-                    />
-                    <text
-                      x={PAD_L - 8}
-                      y={y + 4}
-                      textAnchor="end"
-                      fontSize="10"
-                      fill="var(--ink-4)"
-                      fontFamily="Inter"
-                    >
-                      ${t}M
-                    </text>
-                  </g>
-                ))}
-                <path d={chart.areaPath} fill="url(#areaGrad)" />
-                <path
-                  d={chart.linePath}
-                  fill="none"
-                  stroke="var(--accent)"
-                  strokeWidth="2.2"
-                  strokeLinejoin="round"
-                  strokeLinecap="round"
-                />
-                <circle
-                  cx={chart.coords[HIGHLIGHT_INDEX][0]}
-                  cy={chart.coords[HIGHLIGHT_INDEX][1]}
-                  r="6"
-                  fill="#fff"
-                  stroke="var(--accent)"
-                  strokeWidth="2.2"
-                />
-                {chart.xLabels.map(({ yr, x }) => (
+      <div className={styles.split}>
+        <div className={styles.chartCard}>
+          <div className={styles.chartHead}>
+            <div className={styles.chartTitle}>Procurement spending trends</div>
+            <div className={styles.chartSub}>Aggregated spend across all agencies by year</div>
+          </div>
+          <div className={styles.chartWrap}>
+            <svg viewBox={`0 0 ${CHART_W} ${CHART_H}`} preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="execAreaGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="var(--accent)" stopOpacity="0.18" />
+                  <stop offset="100%" stopColor="var(--accent)" stopOpacity="0.01" />
+                </linearGradient>
+              </defs>
+              {chart.ticks.map(({ t, y }) => (
+                <g key={t}>
+                  <line
+                    x1={PAD_L}
+                    x2={CHART_W - PAD_R}
+                    y1={y}
+                    y2={y}
+                    stroke="var(--line)"
+                    strokeDasharray="2 4"
+                  />
                   <text
-                    key={yr}
-                    x={x}
-                    y={CHART_H - 10}
-                    textAnchor="middle"
+                    x={PAD_L - 8}
+                    y={y + 4}
+                    textAnchor="end"
                     fontSize="10"
                     fill="var(--ink-4)"
                     fontFamily="Inter"
                   >
-                    {yr}
+                    ${t}M
                   </text>
-                ))}
-              </svg>
-            </div>
+                </g>
+              ))}
+              <path d={chart.areaPath} fill="url(#execAreaGrad)" />
+              <path
+                d={chart.linePath}
+                fill="none"
+                stroke="var(--accent)"
+                strokeWidth="2.2"
+                strokeLinejoin="round"
+                strokeLinecap="round"
+              />
+              <circle
+                cx={chart.coords[HIGHLIGHT_INDEX][0]}
+                cy={chart.coords[HIGHLIGHT_INDEX][1]}
+                r="6"
+                fill="#fff"
+                stroke="var(--accent)"
+                strokeWidth="2.2"
+              />
+              {chart.xLabels.map(({ yr, x }) => (
+                <text
+                  key={yr}
+                  x={x}
+                  y={CHART_H - 10}
+                  textAnchor="middle"
+                  fontSize="10"
+                  fill="var(--ink-4)"
+                  fontFamily="Inter"
+                >
+                  {yr}
+                </text>
+              ))}
+            </svg>
           </div>
-
-          <aside className={styles.alertCard}>
-            <span className={styles.alertBadge}>Renewal alert</span>
-            <div className={styles.alertTitle}>
-              {data.exp} contracts
-              <br />
-              expiring soon
-            </div>
-            <div className={styles.alertBody}>
-              {data.expAmt} in historical spend is in the renewal window. These agencies are prime
-              targets for outreach now.
-            </div>
-            <button type="button" className={styles.alertCta}>
-              View all opportunities →
-            </button>
-          </aside>
         </div>
-      </main>
-    </div>
+
+        <aside className={styles.alertCard}>
+          <span className={styles.alertBadge}>Renewal alert</span>
+          <div className={styles.alertTitle}>
+            {data.exp} contracts
+            <br />
+            expiring soon
+          </div>
+          <div className={styles.alertBody}>
+            {data.expAmt} in historical spend is in the renewal window. These agencies are prime
+            targets for outreach now.
+          </div>
+          <button type="button" className={styles.alertCta}>
+            View all opportunities →
+          </button>
+        </aside>
+      </div>
+    </AppShell>
   );
 }
 

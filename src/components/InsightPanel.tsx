@@ -10,28 +10,23 @@ interface InsightPanelProps {
 
 export default function InsightPanel({ expiringCount, expiringValue, onViewAll }: InsightPanelProps) {
   return (
-    <div className="col-span-12 lg:col-span-4 bg-primary text-white p-5 md:p-6 rounded-xl shadow-lg relative overflow-hidden flex flex-col justify-between min-h-[220px]">
-      <div className="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 bg-secondary/10 rounded-full blur-2xl" />
-      <div className="relative z-10">
-        <span className="text-tertiary-fixed text-[10px] font-bold uppercase border border-tertiary-fixed/30 rounded px-1.5 py-0.5 mb-4 inline-block tracking-wider">
-          Renewal Alert
-        </span>
-        <h4 className="text-xl font-headline font-bold leading-tight mb-2">
-          {expiringCount} Expiring Contracts
-        </h4>
-        <p className="text-on-primary-container text-[13px] leading-relaxed">
-          {formatCurrency(expiringValue)} in historical spend is in the renewal window.
-          These agencies are prime targets for outreach now.
-        </p>
-      </div>
+    <div className="col-span-12 lg:col-span-4 rounded-[14px] p-6 flex flex-col min-h-[220px]" style={{ background: "var(--alert)", color: "var(--alert-ink)" }}>
+      <span className="inline-flex self-start px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-[0.14em] mb-4" style={{ background: "var(--accent-soft)", color: "oklch(0.30 0.12 160)" }}>
+        Renewal Alert
+      </span>
+      <h4 className="font-headline font-normal leading-[1.08] tracking-tight mb-3 text-primary" style={{ fontSize: "28px" }}>
+        {expiringCount} contracts<br />expiring soon
+      </h4>
+      <p className="text-[14px] leading-relaxed mb-5" style={{ color: "var(--ink-2)" }}>
+        {formatCurrency(expiringValue)} in historical spend is in the renewal window.
+        These agencies are prime targets for outreach now.
+      </p>
       <button
         onClick={onViewAll}
-        className="relative z-10 w-full py-3 bg-white text-primary font-bold rounded-lg text-xs hover:bg-surface-container-high transition-colors mt-6 flex items-center justify-center gap-1.5"
+        className="mt-auto w-full inline-flex items-center justify-center gap-2 py-3.5 px-5 rounded-[10px] text-white text-[14px] font-medium transition-transform hover:-translate-y-0.5"
+        style={{ background: "var(--ink)" }}
       >
-        View All Opportunities
-        <span className="material-symbols-outlined" style={{ fontSize: "14px" }}>
-          arrow_forward
-        </span>
+        View all opportunities →
       </button>
     </div>
   );

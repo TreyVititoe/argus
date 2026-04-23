@@ -3,6 +3,7 @@
 import { useState, ReactNode } from "react";
 import Sidebar from "./Sidebar";
 import TopAppBar from "./TopAppBar";
+import styles from "./shell.module.css";
 
 interface AppShellProps {
   children: ReactNode;
@@ -14,9 +15,9 @@ export default function AppShell({ children, search = "", onSearchChange }: AppS
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <>
+    <div className={styles.app}>
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      <main className="lg:ml-64 min-h-screen pb-12">
+      <main className={styles.main}>
         <TopAppBar
           search={search}
           onSearchChange={onSearchChange || (() => {})}
@@ -24,6 +25,6 @@ export default function AppShell({ children, search = "", onSearchChange }: AppS
         />
         {children}
       </main>
-    </>
+    </div>
   );
 }

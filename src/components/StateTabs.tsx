@@ -4,26 +4,28 @@ import { StateInfo } from "@/lib/types";
 
 interface StateTabsProps {
   states: StateInfo[];
-  selected: string; // state code or "ALL"
+  selected: string;
   onSelect: (code: string) => void;
   total: number;
 }
 
 export default function StateTabs({ states, selected, onSelect, total }: StateTabsProps) {
+  const baseBtn =
+    "shrink-0 inline-flex items-center gap-2.5 pl-4 pr-3.5 py-2 rounded-full text-[13px] font-medium border transition-colors";
+  const inactive =
+    "bg-surface-container-lowest border-outline-variant text-primary hover:border-[oklch(0.88_0.007_85)]";
+  const active = "bg-primary border-primary text-white";
+
   return (
-    <div className="flex items-center gap-1 md:gap-2 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-thin">
+    <div className="flex items-center flex-wrap gap-2.5 pb-2">
       <button
         onClick={() => onSelect("ALL")}
-        className={`shrink-0 px-3 md:px-4 py-2 rounded-xl text-xs md:text-sm font-bold transition-all ${
-          selected === "ALL"
-            ? "bg-primary text-white shadow-sm"
-            : "bg-surface-container-lowest text-on-surface-variant hover:bg-surface-container-high"
-        }`}
+        className={`${baseBtn} ${selected === "ALL" ? active : inactive}`}
       >
-        All States
+        All states
         <span
-          className={`ml-1.5 text-[10px] font-medium ${
-            selected === "ALL" ? "text-white/70" : "text-on-surface-variant/70"
+          className={`text-[12px] font-medium rounded-full px-2 py-0.5 ${
+            selected === "ALL" ? "bg-white/12 text-white/80" : "bg-surface-container text-on-surface-variant"
           }`}
         >
           {total.toLocaleString()}
@@ -34,17 +36,13 @@ export default function StateTabs({ states, selected, onSelect, total }: StateTa
         <button
           key={s.code}
           onClick={() => onSelect(s.code)}
-          className={`shrink-0 px-3 md:px-4 py-2 rounded-xl text-xs md:text-sm font-bold transition-all ${
-            selected === s.code
-              ? "bg-secondary text-white shadow-sm"
-              : "bg-surface-container-lowest text-on-surface-variant hover:bg-surface-container-high"
-          }`}
+          className={`${baseBtn} ${selected === s.code ? active : inactive}`}
           title={`${s.name} — ${s.transactionCount.toLocaleString()} transactions`}
         >
           {s.code}
           <span
-            className={`ml-1.5 text-[10px] font-medium ${
-              selected === s.code ? "text-white/70" : "text-on-surface-variant/70"
+            className={`text-[12px] font-medium rounded-full px-2 py-0.5 ${
+              selected === s.code ? "bg-white/12 text-white/80" : "bg-surface-container text-on-surface-variant"
             }`}
           >
             {s.transactionCount.toLocaleString()}

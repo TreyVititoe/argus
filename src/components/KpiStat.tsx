@@ -10,19 +10,21 @@ interface KpiStatProps {
 export default function KpiStat({ label, value, delta, deltaType = "positive" }: KpiStatProps) {
   const deltaColor =
     deltaType === "positive"
-      ? "text-on-tertiary-container"
+      ? "text-[oklch(0.55_0.14_150)]"
       : deltaType === "negative"
       ? "text-on-error-container"
       : "text-on-surface-variant";
 
   return (
-    <div className="bg-surface-container-lowest p-4 rounded-xl shadow-sm hover:bg-surface-container-high hover:-translate-y-0.5 transition-all duration-200">
-      <p className="text-on-surface-variant text-[10px] font-bold uppercase tracking-wider mb-2">
+    <div className="bg-surface-container-lowest border border-outline-variant rounded-[14px] p-5 min-h-[118px] flex flex-col gap-2.5 transition-colors hover:border-[oklch(0.88_0.007_85)]">
+      <p className="text-on-surface-variant text-[11px] font-semibold uppercase tracking-[0.12em] leading-tight">
         {label}
       </p>
-      <div className="flex items-end justify-between gap-2">
-        <p className="text-xl font-headline font-bold text-primary truncate">{value}</p>
-        {delta && <span className={`${deltaColor} text-[10px] font-bold shrink-0`}>{delta}</span>}
+      <div className="flex items-baseline gap-2.5 flex-wrap">
+        <span className="font-headline font-normal text-[32px] leading-none tracking-tight text-primary">
+          {value}
+        </span>
+        {delta && <span className={`${deltaColor} text-[13px] font-medium`}>{delta}</span>}
       </div>
     </div>
   );
