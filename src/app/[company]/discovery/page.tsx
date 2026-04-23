@@ -1,5 +1,5 @@
 import DiscoveryView from "@/components/DiscoveryView";
 
-export default function DiscoveryPage() {
+export default function CompanyDiscoveryPage() {
   return <DiscoveryView />;
 }

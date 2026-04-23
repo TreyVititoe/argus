@@ -1,5 +1,5 @@
 import HelpView from "@/components/HelpView";
 
-export default function HelpPage() {
+export default function CompanyHelpPage() {
   return <HelpView />;
 }

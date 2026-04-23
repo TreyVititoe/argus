@@ -1,5 +1,5 @@
 import AnalyticsView from "@/components/AnalyticsView";
 
-export default function AnalyticsPage() {
+export default function CompanyAnalyticsPage() {
   return <AnalyticsView />;
 }
