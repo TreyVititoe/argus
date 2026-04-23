@@ -38,7 +38,7 @@
 }
 
 @theme {
-  --font-headline: "Instrument Serif", Georgia, serif;
+  --font-headline: "Inter", system-ui, sans-serif;
   --font-body: "Inter", system-ui, sans-serif;
   --font-label: "Inter", system-ui, sans-serif;
 

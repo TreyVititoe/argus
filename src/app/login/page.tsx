@@ -63,7 +63,7 @@ export default function LoginPage() {
           >
             Sign in
           </div>
-          <h1 className="font-headline font-normal leading-[1.05] tracking-tight text-[40px] mb-2">
+          <h1 className="font-headline font-bold leading-[1.05] tracking-[-0.02em] text-[40px] mb-2">
             Log in to your dashboard
           </h1>
           <p className="text-[14px] mb-6 leading-relaxed" style={{ color: "var(--ink-3)" }}>
