@@ -3,6 +3,7 @@
 import { StateInfo } from "@/lib/types";
 import rawData from "@/lib/data.json";
 import AppShell from "./AppShell";
+import PageHeader from "./PageHeader";
 import { formatCurrency, CURRENT_YEAR } from "@/lib/data-utils";
 
 const states = rawData.states as StateInfo[];
@@ -17,17 +18,9 @@ const stats = rawData.stats as {
 export default function SettingsView() {
   return (
     <AppShell>
-      <section className="px-4 md:px-8 py-6 md:py-8 max-w-[1440px] mx-auto">
-        <div className="mb-6">
-          <span className="text-secondary font-bold text-xs uppercase tracking-widest block mb-1">
-            Configuration
-          </span>
-          <h3 className="text-2xl md:text-3xl font-headline font-extrabold text-primary tracking-tight">
-            Settings
-          </h3>
-        </div>
+      <PageHeader eyebrow="Configuration" title="Settings" />
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="bg-surface-container-lowest p-6 rounded-xl shadow-sm">
             <h4 className="text-base font-headline font-bold text-primary mb-4">Account</h4>
             <div className="space-y-4">
@@ -133,7 +126,6 @@ export default function SettingsView() {
             </div>
           </div>
         </div>
-      </section>
     </AppShell>
   );
 }

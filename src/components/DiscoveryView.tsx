@@ -6,6 +6,7 @@ import { formatCurrency, formatFullCurrency } from "@/lib/data-utils";
 import rawData from "@/lib/data.json";
 import AppShell from "./AppShell";
 import StateTabs from "./StateTabs";
+import PageHeader from "./PageHeader";
 
 const allTransactions = rawData.transactions as Transaction[];
 const allStates = rawData.states as StateInfo[];
@@ -57,20 +58,13 @@ export default function DiscoveryView() {
 
   return (
     <AppShell search={search} onSearchChange={setSearch}>
-      <section className="px-4 md:px-8 py-6 md:py-8 max-w-[1440px] mx-auto">
-        <div className="mb-4">
-          <span className="text-secondary font-bold text-xs uppercase tracking-widest block mb-1">
-            Transaction Explorer
-          </span>
-          <h3 className="text-2xl md:text-3xl font-headline font-extrabold text-primary tracking-tight">
-            Discovery
-          </h3>
-          <p className="text-sm text-on-surface-variant mt-1">
-            {filtered.length.toLocaleString()} transactions &middot; {formatCurrency(totalSpend)}
-          </p>
-        </div>
+      <PageHeader
+        eyebrow="Transaction Explorer"
+        title="Discovery"
+        meta={`${filtered.length.toLocaleString()} transactions · ${formatCurrency(totalSpend)}`}
+      />
 
-        <div className="mb-4">
+      <div className="mb-4">
           <StateTabs
             states={allStates}
             selected={selectedState}
@@ -282,7 +276,6 @@ export default function DiscoveryView() {
             </div>
           </div>
         )}
-      </section>
     </AppShell>
   );
 }
