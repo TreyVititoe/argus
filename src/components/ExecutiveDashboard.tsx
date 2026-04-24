@@ -17,6 +17,7 @@ import TopAgenciesBarChart from "./TopAgenciesBarChart";
 import CompetitorsTable from "./CompetitorsTable";
 import OpportunityTable from "./OpportunityTable";
 import StateTabs from "./StateTabs";
+import StateMap from "./StateMap";
 import PageHeader from "./PageHeader";
 import { getRegion, FL_REGIONS, Region } from "@/lib/regions";
 
@@ -232,13 +233,18 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
         )}
       </div>
 
-      <div className="mb-7">
-        <StateTabs
-          states={allStates}
-          selected={selectedState}
-          onSelect={handleStateChange}
-          total={allTransactions.length}
-        />
+      <div className="mb-7 grid grid-cols-12 gap-4 items-stretch">
+        <div className="col-span-12 lg:col-span-8">
+          <StateTabs
+            states={allStates}
+            selected={selectedState}
+            onSelect={handleStateChange}
+            total={allTransactions.length}
+          />
+        </div>
+        <div className="col-span-12 lg:col-span-4">
+          <StateMap states={allStates} selectedState={selectedState} selectedRegion={selectedRegion} />
+        </div>
       </div>
 
       {selectedState === "FL" && flRegionCounts && (
