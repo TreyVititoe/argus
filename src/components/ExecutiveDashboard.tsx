@@ -150,8 +150,8 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
 
   return (
     <AppShell search={search} onSearchChange={setSearch}>
-      <div className="grid grid-cols-12 gap-4 items-start mb-2">
-        <div className="col-span-12 lg:col-span-8">
+      <div className="grid grid-cols-12 gap-4 lg:items-end mb-5">
+        <div className="col-span-12 lg:col-span-8 flex flex-col gap-4">
           <PageHeader
             eyebrow={company ? `Market Overview · ${formatCompany(company)}` : "Market Overview"}
             title="Executive dashboard"
@@ -161,14 +161,9 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
                 : allStates.find((s) => s.code === selectedState)?.name || selectedState
             }
           />
-        </div>
-        <div className="col-span-12 lg:col-span-4">
-          <StateMap states={allStates} selectedState={selectedState} selectedRegion={selectedRegion} />
-        </div>
-      </div>
 
       {/* Year range: collapsible summary bar */}
-      <div className="mb-4">
+      <div>
         <button
           type="button"
           onClick={() => setYearsOpen((v) => !v)}
@@ -252,7 +247,7 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
       </div>
 
       {/* States: collapsible chip mirroring Year */}
-      <div className="mb-4 flex items-center flex-wrap gap-2">
+      <div className="flex items-center flex-wrap gap-2">
         <button
           type="button"
           onClick={() => setStatesOpen((v) => !v)}
@@ -294,7 +289,7 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
       </div>
 
       {statesOpen && (
-        <div className="mb-7 rounded-[14px] border border-outline-variant bg-surface-container-lowest px-4 py-3">
+        <div className="rounded-[14px] border border-outline-variant bg-surface-container-lowest px-4 py-3">
           <StateTabs
             states={allStates}
             selected={selectedState}
@@ -305,7 +300,7 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
       )}
 
       {selectedState === "FL" && flRegionCounts && (
-        <div className="mb-7 flex items-center flex-wrap gap-2.5">
+        <div className="flex items-center flex-wrap gap-2.5">
           <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-on-surface-variant mr-2">
             Region
           </span>
@@ -336,6 +331,11 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
           })}
         </div>
       )}
+        </div>
+        <div className="col-span-12 lg:col-span-4">
+          <StateMap states={allStates} selectedState={selectedState} selectedRegion={selectedRegion} />
+        </div>
+      </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3.5 mb-5">
         <KpiStat
