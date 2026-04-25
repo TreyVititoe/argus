@@ -16,8 +16,9 @@ interface ShareDonutProps {
 }
 
 export default function ShareDonut({ eyebrow, title, rows, colors }: ShareDonutProps) {
-  const top = rows.slice(0, 5);
-  const otherSum = rows.slice(5).reduce((s, r) => s + r.value, 0);
+  const sorted = [...rows].sort((a, b) => b.value - a.value);
+  const top = sorted.slice(0, 5);
+  const otherSum = sorted.slice(5).reduce((s, r) => s + r.value, 0);
   const data = otherSum > 0 ? [...top, { name: "Other", value: otherSum }] : top;
   const total = data.reduce((s, d) => s + d.value, 0) || 1;
   const leader = data[0];

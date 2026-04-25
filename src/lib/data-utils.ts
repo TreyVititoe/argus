@@ -123,23 +123,25 @@ export function summarizeByCompany(transactions: Transaction[]): CompanySummary[
     }
   }
 
-  return Array.from(map.entries()).map(([name, e]) => {
-    const topKeywords = [...e.keywordCounts.entries()]
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 3)
-      .map(([k]) => k);
-    const years = Object.keys(e.spendByYear).map(Number).filter((y) => y > 0);
-    const lastPurchaseYear = years.length > 0 ? Math.max(...years) : 0;
-    return {
-      name,
-      totalSpend: e.totalSpend,
-      agencyCount: e.agencies.size,
-      transactionCount: e.transactionCount,
-      spendByYear: e.spendByYear,
-      topKeywords,
-      lastPurchaseYear,
-    };
-  });
+  return Array.from(map.entries())
+    .map(([name, e]) => {
+      const topKeywords = [...e.keywordCounts.entries()]
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3)
+        .map(([k]) => k);
+      const years = Object.keys(e.spendByYear).map(Number).filter((y) => y > 0);
+      const lastPurchaseYear = years.length > 0 ? Math.max(...years) : 0;
+      return {
+        name,
+        totalSpend: e.totalSpend,
+        agencyCount: e.agencies.size,
+        transactionCount: e.transactionCount,
+        spendByYear: e.spendByYear,
+        topKeywords,
+        lastPurchaseYear,
+      };
+    })
+    .sort((a, b) => b.totalSpend - a.totalSpend);
 }
 
 export function summarizeByVendor(transactions: Transaction[]): { name: string; totalSpend: number; transactionCount: number }[] {
