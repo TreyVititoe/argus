@@ -333,7 +333,7 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
         </div>
       )}
         </div>
-        <div className="col-span-12 lg:col-span-4 flex flex-col gap-3">
+        <div className="col-span-12 lg:col-span-4 flex flex-col gap-1">
           <TenantLogo company={company} />
           <StateMap states={allStates} selectedState={selectedState} selectedRegion={selectedRegion} />
         </div>
