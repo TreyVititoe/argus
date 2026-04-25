@@ -15,6 +15,12 @@ const RESERVED_SUBROUTES = new Set([
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
+  // Static assets in /public/* (anything with a file extension in the last segment).
+  const lastSegment = pathname.split("/").pop() ?? "";
+  if (lastSegment.includes(".")) {
+    return NextResponse.next();
+  }
+
   if (PUBLIC_PATHS.has(pathname)) {
     return NextResponse.next();
   }
