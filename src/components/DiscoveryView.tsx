@@ -7,6 +7,10 @@ import rawData from "@/lib/data.json";
 import AppShell from "./AppShell";
 import StateTabs from "./StateTabs";
 import PageHeader from "./PageHeader";
+import ExportButton from "./ExportButton";
+
+type SortKey = "agency" | "state" | "year" | "vendor" | "keyword" | "amount";
+type SortDir = "asc" | "desc";
 
 const allTransactions = rawData.transactions as Transaction[];
 const allStates = rawData.states as StateInfo[];
@@ -17,6 +21,17 @@ export default function DiscoveryView() {
   const [yearFilter, setYearFilter] = useState<number | null>(null);
   const [keywordFilter, setKeywordFilter] = useState<string>("");
   const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
+  const [sortKey, setSortKey] = useState<SortKey>("amount");
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
+
+  function setSort(k: SortKey) {
+    if (sortKey === k) {
+      setSortDir(sortDir === "asc" ? "desc" : "asc");
+    } else {
+      setSortKey(k);
+      setSortDir(k === "amount" || k === "year" ? "desc" : "asc");
+    }
+  }
 
   const keywords = useMemo(() => {
     const s = new Set<string>();
@@ -47,12 +62,24 @@ export default function DiscoveryView() {
         (t) =>
           t.agency.toLowerCase().includes(q) ||
           t.company.toLowerCase().includes(q) ||
+          (t.competitor || "").toLowerCase().includes(q) ||
           t.description.toLowerCase().includes(q) ||
           t.keyword.toLowerCase().includes(q)
       );
     }
-    return [...result].sort((a, b) => b.totalPrice - a.totalPrice);
-  }, [selectedState, yearFilter, keywordFilter, search]);
+    const sorted = [...result];
+    sorted.sort((a, b) => {
+      let cmp = 0;
+      if (sortKey === "agency") cmp = a.agency.localeCompare(b.agency);
+      else if (sortKey === "state") cmp = a.stateCode.localeCompare(b.stateCode);
+      else if (sortKey === "year") cmp = a.year - b.year;
+      else if (sortKey === "vendor") cmp = a.company.localeCompare(b.company);
+      else if (sortKey === "keyword") cmp = (a.keyword || "").localeCompare(b.keyword || "");
+      else cmp = a.totalPrice - b.totalPrice;
+      return sortDir === "asc" ? cmp : -cmp;
+    });
+    return sorted;
+  }, [selectedState, yearFilter, keywordFilter, search, sortKey, sortDir]);
 
   const totalSpend = filtered.reduce((s, t) => s + t.totalPrice, 0);
 
@@ -126,6 +153,10 @@ export default function DiscoveryView() {
                 Clear filters
               </button>
             )}
+
+            <div className="ml-auto">
+              <ExportButton transactions={filtered} />
+            </div>
           </div>
         </div>
 
@@ -134,12 +165,12 @@ export default function DiscoveryView() {
             <table className="w-full text-left">
               <thead className="sticky top-0 bg-surface-container-lowest z-10 border-b border-surface-container">
                 <tr className="text-on-surface-variant text-[9px] font-bold uppercase tracking-widest">
-                  <th className="px-4 md:px-6 py-3">Agency</th>
-                  <th className="px-4 md:px-6 py-3 hidden sm:table-cell">State</th>
-                  <th className="px-4 md:px-6 py-3 hidden md:table-cell">Year</th>
-                  <th className="px-4 md:px-6 py-3">Vendor</th>
-                  <th className="px-4 md:px-6 py-3 hidden lg:table-cell">Keyword</th>
-                  <th className="px-4 md:px-6 py-3 text-right">Amount</th>
+                  <DiscHeader label="Agency" k="agency" sortKey={sortKey} dir={sortDir} onClick={setSort} />
+                  <DiscHeader label="State" k="state" sortKey={sortKey} dir={sortDir} onClick={setSort} className="hidden sm:table-cell" />
+                  <DiscHeader label="Year" k="year" sortKey={sortKey} dir={sortDir} onClick={setSort} className="hidden md:table-cell" />
+                  <DiscHeader label="Vendor" k="vendor" sortKey={sortKey} dir={sortDir} onClick={setSort} />
+                  <DiscHeader label="Keyword" k="keyword" sortKey={sortKey} dir={sortDir} onClick={setSort} className="hidden lg:table-cell" />
+                  <DiscHeader label="Amount" k="amount" sortKey={sortKey} dir={sortDir} onClick={setSort} className="text-right" />
                 </tr>
               </thead>
               <tbody className="divide-y divide-surface-container/30">
@@ -277,5 +308,36 @@ export default function DiscoveryView() {
           </div>
         )}
     </AppShell>
+  );
+}
+
+function DiscHeader({
+  label,
+  k,
+  sortKey,
+  dir,
+  onClick,
+  className = "",
+}: {
+  label: string;
+  k: SortKey;
+  sortKey: SortKey;
+  dir: SortDir;
+  onClick: (k: SortKey) => void;
+  className?: string;
+}) {
+  const active = sortKey === k;
+  return (
+    <th
+      onClick={() => onClick(k)}
+      className={`px-4 md:px-6 py-3 cursor-pointer select-none ${active ? "text-primary" : "hover:text-primary"} ${className}`}
+    >
+      <span className="inline-flex items-center gap-1">
+        {label}
+        <span className={`inline-block transition-opacity ${active ? "opacity-100" : "opacity-30"}`}>
+          {dir === "asc" ? "▲" : "▼"}
+        </span>
+      </span>
+    </th>
   );
 }
