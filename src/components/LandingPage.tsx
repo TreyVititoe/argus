@@ -334,11 +334,12 @@ export default function LandingPage() {
             Argus
           </div>
           <div className={styles.footLinks}>
-            <a href="#">Product</a>
-            <a href="#">Security</a>
-            <a href="#">Careers</a>
+            <Link href="/about">About</Link>
+            <Link href="/pricing">Pricing</Link>
+            <Link href="/security">Security</Link>
+            <Link href="/privacy">Privacy</Link>
+            <Link href="/terms">Terms</Link>
             <a href="mailto:me@treyvititoe.com">Contact</a>
-            <a href="#">Terms</a>
           </div>
           <div>© {new Date().getFullYear()} Argus Intelligence</div>
         </div>

@@ -8,9 +8,44 @@ const inter = Inter({
   weight: ["400", "500", "600", "700", "800"],
 });
 
+const SITE_URL = "https://www.argus.bz";
+const SITE_TITLE = "Argus — Procurement Intelligence";
+const SITE_DESCRIPTION =
+  "Argus turns a decade of public-sector procurement records into a live map of who's buying what, from whom, and when it's up for renewal.";
+
 export const metadata: Metadata = {
-  title: "Argus — Procurement Intelligence",
-  description: "See every expiring contract. Sales targeting dashboard for public sector procurement data.",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: SITE_TITLE,
+    template: "%s",
+  },
+  description: SITE_DESCRIPTION,
+  applicationName: "Argus",
+  keywords: [
+    "procurement intelligence",
+    "public sector sales",
+    "government contracts",
+    "SLED",
+    "renewal radar",
+    "sales targeting",
+  ],
+  authors: [{ name: "Argus Intelligence" }],
+  openGraph: {
+    type: "website",
+    url: SITE_URL,
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    siteName: "Argus",
+  },
+  twitter: {
+    card: "summary",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export const viewport: Viewport = {
