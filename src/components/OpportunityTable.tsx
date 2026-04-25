@@ -14,14 +14,6 @@ interface OpportunityTableProps {
   onFilterChange: (f: FilterMode) => void;
 }
 
-function confidenceLevel(opportunityScore: number, maxScore: number) {
-  if (maxScore === 0) return { label: "Low (0%)", style: "text-on-error-container bg-error-container/30" };
-  const pct = Math.min(Math.round((opportunityScore / maxScore) * 100), 99);
-  if (pct >= 75) return { label: `High (${pct}%)`, style: "text-on-tertiary-container bg-on-tertiary-container/10" };
-  if (pct >= 40) return { label: `Med (${pct}%)`, style: "text-on-surface-variant bg-surface-container" };
-  return { label: `Low (${pct}%)`, style: "text-on-error-container bg-error-container/30" };
-}
-
 function statusBadge(status: ContractStatus) {
   if (status === "expiring")
     return (
@@ -119,7 +111,6 @@ const OpportunityTable = forwardRef<HTMLDivElement, OpportunityTableProps>(funct
     return c;
   }, [agencies]);
 
-  const maxScore = Math.max(...filtered.map((a) => a.opportunityScore), 1);
   const maxSpend = Math.max(...filtered.map((a) => a.totalSpend), 1);
 
   const displayed = showAll ? filtered : filtered.slice(0, 50);
@@ -200,7 +191,6 @@ const OpportunityTable = forwardRef<HTMLDivElement, OpportunityTableProps>(funct
               <SortHeader label="Agency" k="name" sortKey={sortKey} dir={sortDir} onClick={setSort} />
               <SortHeader label="Sector" k="type" sortKey={sortKey} dir={sortDir} onClick={setSort} className="hidden sm:table-cell" />
               <SortHeader label="Size" k="spend" sortKey={sortKey} dir={sortDir} onClick={setSort} />
-              <SortHeader label="Confidence" k="score" sortKey={sortKey} dir={sortDir} onClick={setSort} className="hidden lg:table-cell" />
               <SortHeader label="Est. Renewal" k="renewal" sortKey={sortKey} dir={sortDir} onClick={setSort} className="hidden xl:table-cell" />
               <th className="px-4 md:px-6 py-3 hidden md:table-cell">Lead Score</th>
               <SortHeader label="Status" k="status" sortKey={sortKey} dir={sortDir} onClick={setSort} />
@@ -209,7 +199,6 @@ const OpportunityTable = forwardRef<HTMLDivElement, OpportunityTableProps>(funct
           </thead>
           <tbody className="divide-y divide-surface-container/30">
             {displayed.map((agency) => {
-              const conf = confidenceLevel(agency.opportunityScore, maxScore);
               const leadPct = Math.min((agency.totalSpend / maxSpend) * 100, 100);
               const estRenewal =
                 agency.lastPurchaseYear > 0
@@ -224,7 +213,7 @@ const OpportunityTable = forwardRef<HTMLDivElement, OpportunityTableProps>(funct
                     onClick={() => setExpanded(isOpen ? null : agency.name)}
                     className={`transition-colors group cursor-pointer ${
                       agency.contractStatus === "expiring"
-                        ? "bg-tertiary-fixed-dim/5 hover:bg-tertiary-fixed-dim/10"
+                        ? "bg-[oklch(0.95_0.05_150)] hover:bg-[oklch(0.92_0.07_150)]"
                         : "hover:bg-surface"
                     } ${isOpen ? "bg-surface-container-low" : ""}`}
                   >
@@ -246,11 +235,6 @@ const OpportunityTable = forwardRef<HTMLDivElement, OpportunityTableProps>(funct
                     </td>
                     <td className="px-4 md:px-6 py-4 text-xs font-bold text-primary whitespace-nowrap">
                       {formatCurrency(agency.totalSpend)}
-                    </td>
-                    <td className="px-4 md:px-6 py-4 hidden lg:table-cell">
-                      <span className={`text-xs font-medium px-2 py-0.5 rounded whitespace-nowrap ${conf.style}`}>
-                        {conf.label}
-                      </span>
                     </td>
                     <td className="px-4 md:px-6 py-4 text-xs text-on-surface-variant whitespace-nowrap hidden xl:table-cell">
                       {estRenewal}
