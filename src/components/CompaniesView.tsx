@@ -70,9 +70,9 @@ export default function CompaniesView() {
   return (
     <AppShell search={search} onSearchChange={setSearch}>
       <PageHeader
-        eyebrow="Vendor Database"
-        title="Companies"
-        meta={`${companies.length} vendors · ${formatCurrency(totalSpend)} tracked spend`}
+        eyebrow="Reseller Database"
+        title="Resellers"
+        meta={`${companies.length} resellers · ${formatCurrency(totalSpend)} tracked spend`}
       />
 
       <div className="mb-6">
