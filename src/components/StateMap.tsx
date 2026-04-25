@@ -13,6 +13,7 @@ interface StateMapProps {
 const STATE_IMAGE: Record<string, string> = {
   GA: "/maps/states/georgia.png",
   NC: "/maps/states/ncarolina.png",
+  SC: "/maps/states/scarolina.png",
   VA: "/maps/states/virgina.png",
   MD: "/maps/states/maryland.png",
   TN: "/maps/states/tennessee.png",

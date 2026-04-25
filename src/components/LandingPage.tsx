@@ -57,7 +57,7 @@ export default function LandingPage() {
             <a href="#product" onClick={(e) => smoothScroll(e, "product")}>Product</a>
             <a href="#coverage" onClick={(e) => smoothScroll(e, "coverage")}>Coverage</a>
             <a href="#how" onClick={(e) => smoothScroll(e, "how")}>How it works</a>
-            <a href="#pricing" onClick={(e) => smoothScroll(e, "pricing")}>Pricing</a>
+            <Link href="/pricing">Pricing</Link>
           </div>
           <div className={styles.navRight}>
             <Link className={`${styles.btn} ${styles.btnAccent}`} href="/login">
@@ -74,9 +74,9 @@ export default function LandingPage() {
           Procurement intelligence for the public sector
         </div>
         <h1 className={styles.heroTitle}>
-          See every contract
+          Stop looking at spreadsheets,
           <br />
-          <em>before</em> it closes.
+          it&apos;s <em>2026</em>.
         </h1>
         <p className={styles.heroSub}>
           Argus turns a decade of public procurement records into a live map of who&apos;s buying

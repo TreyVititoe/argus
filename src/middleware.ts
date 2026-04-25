@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { TENANT_COOKIE_NAME, readSession } from "@/lib/auth";
 
-const PUBLIC_PATHS = new Set(["/", "/login"]);
+const PUBLIC_PATHS = new Set(["/", "/login", "/pricing"]);
 
 // Reserved top-level segments that used to be flat routes; now nested under /[company]/.
 const RESERVED_SUBROUTES = new Set([
