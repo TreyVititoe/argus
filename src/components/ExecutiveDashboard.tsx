@@ -18,6 +18,16 @@ import CompetitorsTable from "./CompetitorsTable";
 import OpportunityTable from "./OpportunityTable";
 import StateTabs from "./StateTabs";
 import StateMap from "./StateMap";
+import ShareDonut from "./ShareDonut";
+
+const SHARE_COLORS = [
+  "oklch(0.50 0.08 160)",
+  "oklch(0.62 0.10 140)",
+  "oklch(0.55 0.12 40)",
+  "oklch(0.55 0.08 240)",
+  "oklch(0.65 0.09 75)",
+  "oklch(0.78 0.005 85)",
+];
 import PageHeader from "./PageHeader";
 import { getRegion, FL_REGIONS, Region } from "@/lib/regions";
 
@@ -55,6 +65,7 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
   const [yearMax, setYearMax] = useState<number | null>(null);
   const [yearsOpen, setYearsOpen] = useState(false);
   const [selectedState, setSelectedState] = useState<string>("ALL");
+  const [statesOpen, setStatesOpen] = useState(false);
   const [selectedRegion, setSelectedRegion] = useState<Region | "all">("all");
   const [opportunityFilter, setOpportunityFilter] = useState<"all" | "expiring" | "active" | "dormant">("all");
   const opportunitiesRef = useRef<HTMLDivElement>(null);
@@ -233,8 +244,50 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
         )}
       </div>
 
-      <div className="mb-7 grid grid-cols-12 gap-4 items-stretch">
-        <div className="col-span-12 lg:col-span-8">
+      {/* States: collapsible chip mirroring Year */}
+      <div className="mb-4 flex items-center flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={() => setStatesOpen((v) => !v)}
+          className="inline-flex items-center gap-3 rounded-full border border-outline-variant bg-surface-container-lowest px-4 py-2 text-[13px] font-medium text-primary transition-colors hover:border-[oklch(0.88_0.007_85)]"
+        >
+          <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-on-surface-variant">
+            States
+          </span>
+          <span>
+            {selectedState === "ALL"
+              ? "All states"
+              : allStates.find((s) => s.code === selectedState)?.name || selectedState}
+          </span>
+          <span className="text-on-surface-variant">
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              style={{ transform: statesOpen ? "rotate(180deg)" : "rotate(0)", transition: "transform 120ms" }}
+            >
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </span>
+        </button>
+        {selectedState !== "ALL" && (
+          <button
+            type="button"
+            onClick={() => handleStateChange("ALL")}
+            className="text-[12px] font-medium text-[var(--accent)] hover:underline ml-1"
+          >
+            Clear
+          </button>
+        )}
+      </div>
+
+      {statesOpen && (
+        <div className="mb-7 rounded-[14px] border border-outline-variant bg-surface-container-lowest px-4 py-3">
           <StateTabs
             states={allStates}
             selected={selectedState}
@@ -242,10 +295,7 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
             total={allTransactions.length}
           />
         </div>
-        <div className="col-span-12 lg:col-span-4">
-          <StateMap states={allStates} selectedState={selectedState} selectedRegion={selectedRegion} />
-        </div>
-      </div>
+      )}
 
       {selectedState === "FL" && flRegionCounts && (
         <div className="mb-7 flex items-center flex-wrap gap-2.5">
@@ -280,36 +330,59 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
         </div>
       )}
 
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3.5 mb-5">
-        <KpiStat
-          label="Total Contract Value"
-          value={formatCurrency(totalSpend)}
-          delta={yoyGrowth >= 0 ? `+${yoyGrowth.toFixed(0)}%` : `${yoyGrowth.toFixed(0)}%`}
-          deltaType={yoyGrowth >= 0 ? "positive" : "negative"}
+      <div className="grid grid-cols-12 gap-4 mb-5">
+        <div className="col-span-12 lg:col-span-4">
+          <StateMap states={allStates} selectedState={selectedState} selectedRegion={selectedRegion} />
+        </div>
+        <div className="col-span-12 lg:col-span-8 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3.5">
+          <KpiStat
+            label="Total Contract Value"
+            value={formatCurrency(totalSpend)}
+            delta={yoyGrowth >= 0 ? `+${yoyGrowth.toFixed(0)}%` : `${yoyGrowth.toFixed(0)}%`}
+            deltaType={yoyGrowth >= 0 ? "positive" : "negative"}
+          />
+          <KpiStat
+            label="Expiring Contracts"
+            value={String(expiringStats.count)}
+            delta={formatCurrency(expiringStats.totalValue)}
+            deltaType="positive"
+          />
+          <KpiStat
+            label="Active Agencies"
+            value={String(activeCount)}
+            delta={`${allAgencies.length} total`}
+            deltaType="neutral"
+          />
+          <KpiStat
+            label="Top Reseller"
+            value={allCompanies[0]?.name.split(/\s+/)[0] || "—"}
+            delta={formatCurrency(allCompanies[0]?.totalSpend || 0)}
+            deltaType="neutral"
+          />
+          <KpiStat
+            label="Top Vendor"
+            value={allVendors[0]?.name || "—"}
+            delta={formatCurrency(allVendors[0]?.totalSpend || 0)}
+            deltaType="neutral"
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-12 gap-4 mb-5">
+        <ShareDonut
+          eyebrow="Reseller share"
+          title="Top resellers by spend"
+          rows={allCompanies.map((c) => ({
+            name: c.name.split(/\s+/).slice(0, 2).join(" "),
+            value: c.totalSpend,
+          }))}
+          colors={SHARE_COLORS}
         />
-        <KpiStat
-          label="Expiring Contracts"
-          value={String(expiringStats.count)}
-          delta={formatCurrency(expiringStats.totalValue)}
-          deltaType="positive"
-        />
-        <KpiStat
-          label="Active Agencies"
-          value={String(activeCount)}
-          delta={`${allAgencies.length} total`}
-          deltaType="neutral"
-        />
-        <KpiStat
-          label="Top Reseller"
-          value={allCompanies[0]?.name.split(/\s+/)[0] || "—"}
-          delta={formatCurrency(allCompanies[0]?.totalSpend || 0)}
-          deltaType="neutral"
-        />
-        <KpiStat
-          label="Top Vendor"
-          value={allVendors[0]?.name || "—"}
-          delta={formatCurrency(allVendors[0]?.totalSpend || 0)}
-          deltaType="neutral"
+        <ShareDonut
+          eyebrow="Competitor share"
+          title="Top vendors by spend"
+          rows={allVendors.map((v) => ({ name: v.name, value: v.totalSpend }))}
+          colors={SHARE_COLORS}
         />
       </div>
 

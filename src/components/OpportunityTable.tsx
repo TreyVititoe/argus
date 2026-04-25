@@ -63,6 +63,8 @@ const OpportunityTable = forwardRef<HTMLDivElement, OpportunityTableProps>(funct
   const [expanded, setExpanded] = useState<string | null>(null);
   const [showAll, setShowAll] = useState(false);
   const [query, setQuery] = useState("");
+  const [sortKey, setSortKey] = useState<"default" | "name" | "type" | "spend" | "score" | "renewal" | "status">("default");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 
   const filtered = useMemo(() => {
     let result = [...agencies];
@@ -79,16 +81,37 @@ const OpportunityTable = forwardRef<HTMLDivElement, OpportunityTableProps>(funct
           a.topKeywords.some((k) => k.toLowerCase().includes(q))
       );
     }
-    // Sort: expiring first, then by opportunity score / spend
-    result.sort((a, b) => {
-      if (filter === "all") {
-        if (a.contractStatus === "expiring" && b.contractStatus !== "expiring") return -1;
-        if (b.contractStatus === "expiring" && a.contractStatus !== "expiring") return 1;
-      }
-      return b.opportunityScore - a.opportunityScore || b.totalSpend - a.totalSpend;
-    });
+    if (sortKey === "default") {
+      result.sort((a, b) => {
+        if (filter === "all") {
+          if (a.contractStatus === "expiring" && b.contractStatus !== "expiring") return -1;
+          if (b.contractStatus === "expiring" && a.contractStatus !== "expiring") return 1;
+        }
+        return b.opportunityScore - a.opportunityScore || b.totalSpend - a.totalSpend;
+      });
+    } else {
+      result.sort((a, b) => {
+        let cmp = 0;
+        if (sortKey === "name") cmp = a.name.localeCompare(b.name);
+        else if (sortKey === "type") cmp = (a.type || "").localeCompare(b.type || "");
+        else if (sortKey === "spend") cmp = a.totalSpend - b.totalSpend;
+        else if (sortKey === "score") cmp = a.opportunityScore - b.opportunityScore;
+        else if (sortKey === "renewal") cmp = a.lastPurchaseYear - b.lastPurchaseYear;
+        else if (sortKey === "status") cmp = a.contractStatus.localeCompare(b.contractStatus);
+        return sortDir === "asc" ? cmp : -cmp;
+      });
+    }
     return result;
-  }, [agencies, filter, query]);
+  }, [agencies, filter, query, sortKey, sortDir]);
+
+  function setSort(key: "name" | "type" | "spend" | "score" | "renewal" | "status") {
+    if (sortKey === key) {
+      setSortDir(sortDir === "asc" ? "desc" : "asc");
+    } else {
+      setSortKey(key);
+      setSortDir(key === "name" || key === "type" ? "asc" : "desc");
+    }
+  }
 
   const counts = useMemo(() => {
     const c = { all: agencies.length, expiring: 0, active: 0, dormant: 0 };
@@ -174,13 +197,13 @@ const OpportunityTable = forwardRef<HTMLDivElement, OpportunityTableProps>(funct
         <table className="w-full text-left">
           <thead className="sticky top-0 bg-surface-container-lowest z-10">
             <tr className="text-on-surface-variant text-[9px] font-bold uppercase tracking-widest border-b border-surface-container">
-              <th className="px-4 md:px-6 py-3">Agency</th>
-              <th className="px-4 md:px-6 py-3 hidden sm:table-cell">Sector</th>
-              <th className="px-4 md:px-6 py-3">Size</th>
-              <th className="px-4 md:px-6 py-3 hidden lg:table-cell">Confidence</th>
-              <th className="px-4 md:px-6 py-3 hidden xl:table-cell">Est. Renewal</th>
+              <SortHeader label="Agency" k="name" sortKey={sortKey} dir={sortDir} onClick={setSort} />
+              <SortHeader label="Sector" k="type" sortKey={sortKey} dir={sortDir} onClick={setSort} className="hidden sm:table-cell" />
+              <SortHeader label="Size" k="spend" sortKey={sortKey} dir={sortDir} onClick={setSort} />
+              <SortHeader label="Confidence" k="score" sortKey={sortKey} dir={sortDir} onClick={setSort} className="hidden lg:table-cell" />
+              <SortHeader label="Est. Renewal" k="renewal" sortKey={sortKey} dir={sortDir} onClick={setSort} className="hidden xl:table-cell" />
               <th className="px-4 md:px-6 py-3 hidden md:table-cell">Lead Score</th>
-              <th className="px-4 md:px-6 py-3">Status</th>
+              <SortHeader label="Status" k="status" sortKey={sortKey} dir={sortDir} onClick={setSort} />
               <th className="px-4 md:px-6 py-3 text-right w-12" />
             </tr>
           </thead>
@@ -337,3 +360,35 @@ const OpportunityTable = forwardRef<HTMLDivElement, OpportunityTableProps>(funct
 });
 
 export default OpportunityTable;
+
+type SortKey = "name" | "type" | "spend" | "score" | "renewal" | "status";
+function SortHeader({
+  label,
+  k,
+  sortKey,
+  dir,
+  onClick,
+  className = "",
+}: {
+  label: string;
+  k: SortKey;
+  sortKey: string;
+  dir: "asc" | "desc";
+  onClick: (k: SortKey) => void;
+  className?: string;
+}) {
+  const active = sortKey === k;
+  return (
+    <th
+      className={`px-4 md:px-6 py-3 cursor-pointer select-none ${active ? "text-primary" : "hover:text-primary"} ${className}`}
+      onClick={() => onClick(k)}
+    >
+      <span className="inline-flex items-center gap-1">
+        {label}
+        <span className={`inline-block transition-opacity ${active ? "opacity-100" : "opacity-30"}`}>
+          {dir === "asc" ? "▲" : "▼"}
+        </span>
+      </span>
+    </th>
+  );
+}
