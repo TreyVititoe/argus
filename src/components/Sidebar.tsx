@@ -10,7 +10,7 @@ const DEFAULT_COMPANY = "cohesity";
 const NAV_ITEMS: { label: string; sub: string | null }[] = [
   { label: "Dashboard", sub: null },
   { label: "Discovery", sub: "discovery" },
-  { label: "Companies", sub: "companies" },
+  { label: "Resellers", sub: "companies" },
   { label: "Analytics", sub: "analytics" },
 ];
 

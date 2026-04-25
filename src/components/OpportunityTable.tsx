@@ -213,7 +213,7 @@ const OpportunityTable = forwardRef<HTMLDivElement, OpportunityTableProps>(funct
                     onClick={() => setExpanded(isOpen ? null : agency.name)}
                     className={`transition-colors group cursor-pointer ${
                       agency.contractStatus === "expiring"
-                        ? "bg-[oklch(0.95_0.05_150)] hover:bg-[oklch(0.92_0.07_150)]"
+                        ? "bg-[oklch(0.97_0.03_150)] hover:bg-[oklch(0.94_0.05_150)]"
                         : "hover:bg-surface"
                     } ${isOpen ? "bg-surface-container-low" : ""}`}
                   >
