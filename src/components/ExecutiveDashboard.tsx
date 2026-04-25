@@ -150,15 +150,22 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
 
   return (
     <AppShell search={search} onSearchChange={setSearch}>
-      <PageHeader
-        eyebrow={company ? `Market Overview · ${formatCompany(company)}` : "Market Overview"}
-        title="Executive dashboard"
-        meta={
-          selectedState === "ALL"
-            ? `${allStates.length} states · ${allTransactions.length.toLocaleString()} transactions`
-            : allStates.find((s) => s.code === selectedState)?.name || selectedState
-        }
-      />
+      <div className="grid grid-cols-12 gap-4 items-start mb-2">
+        <div className="col-span-12 lg:col-span-8">
+          <PageHeader
+            eyebrow={company ? `Market Overview · ${formatCompany(company)}` : "Market Overview"}
+            title="Executive dashboard"
+            meta={
+              selectedState === "ALL"
+                ? `${allStates.length} states · ${allTransactions.length.toLocaleString()} transactions`
+                : allStates.find((s) => s.code === selectedState)?.name || selectedState
+            }
+          />
+        </div>
+        <div className="col-span-12 lg:col-span-4">
+          <StateMap states={allStates} selectedState={selectedState} selectedRegion={selectedRegion} />
+        </div>
+      </div>
 
       {/* Year range: collapsible summary bar */}
       <div className="mb-4">
@@ -330,42 +337,37 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
         </div>
       )}
 
-      <div className="grid grid-cols-12 gap-4 mb-5">
-        <div className="col-span-12 lg:col-span-4">
-          <StateMap states={allStates} selectedState={selectedState} selectedRegion={selectedRegion} />
-        </div>
-        <div className="col-span-12 lg:col-span-8 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3.5">
-          <KpiStat
-            label="Total Contract Value"
-            value={formatCurrency(totalSpend)}
-            delta={yoyGrowth >= 0 ? `+${yoyGrowth.toFixed(0)}%` : `${yoyGrowth.toFixed(0)}%`}
-            deltaType={yoyGrowth >= 0 ? "positive" : "negative"}
-          />
-          <KpiStat
-            label="Expiring Contracts"
-            value={String(expiringStats.count)}
-            delta={formatCurrency(expiringStats.totalValue)}
-            deltaType="positive"
-          />
-          <KpiStat
-            label="Active Agencies"
-            value={String(activeCount)}
-            delta={`${allAgencies.length} total`}
-            deltaType="neutral"
-          />
-          <KpiStat
-            label="Top Reseller"
-            value={allCompanies[0]?.name.split(/\s+/)[0] || "—"}
-            delta={formatCurrency(allCompanies[0]?.totalSpend || 0)}
-            deltaType="neutral"
-          />
-          <KpiStat
-            label="Top Vendor"
-            value={allVendors[0]?.name || "—"}
-            delta={formatCurrency(allVendors[0]?.totalSpend || 0)}
-            deltaType="neutral"
-          />
-        </div>
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3.5 mb-5">
+        <KpiStat
+          label="Total Contract Value"
+          value={formatCurrency(totalSpend)}
+          delta={yoyGrowth >= 0 ? `+${yoyGrowth.toFixed(0)}%` : `${yoyGrowth.toFixed(0)}%`}
+          deltaType={yoyGrowth >= 0 ? "positive" : "negative"}
+        />
+        <KpiStat
+          label="Expiring Contracts"
+          value={String(expiringStats.count)}
+          delta={formatCurrency(expiringStats.totalValue)}
+          deltaType="positive"
+        />
+        <KpiStat
+          label="Active Agencies"
+          value={String(activeCount)}
+          delta={`${allAgencies.length} total`}
+          deltaType="neutral"
+        />
+        <KpiStat
+          label="Top Reseller"
+          value={allCompanies[0]?.name.split(/\s+/)[0] || "—"}
+          delta={formatCurrency(allCompanies[0]?.totalSpend || 0)}
+          deltaType="neutral"
+        />
+        <KpiStat
+          label="Top Vendor"
+          value={allVendors[0]?.name || "—"}
+          delta={formatCurrency(allVendors[0]?.totalSpend || 0)}
+          deltaType="neutral"
+        />
       </div>
 
       <div className="grid grid-cols-12 gap-4 mb-5">
