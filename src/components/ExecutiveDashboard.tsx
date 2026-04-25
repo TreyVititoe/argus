@@ -19,6 +19,7 @@ import OpportunityTable from "./OpportunityTable";
 import StateTabs from "./StateTabs";
 import StateMap from "./StateMap";
 import ShareDonut from "./ShareDonut";
+import TenantLogo from "./TenantLogo";
 
 const SHARE_COLORS = [
   "oklch(0.50 0.08 160)",
@@ -332,7 +333,8 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
         </div>
       )}
         </div>
-        <div className="col-span-12 lg:col-span-4">
+        <div className="col-span-12 lg:col-span-4 flex flex-col gap-3">
+          <TenantLogo company={company} />
           <StateMap states={allStates} selectedState={selectedState} selectedRegion={selectedRegion} />
         </div>
       </div>
