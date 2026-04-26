@@ -17,6 +17,8 @@
   --alert: oklch(0.90 0.018 70);
   --alert-ink: oklch(0.25 0.015 70);
   --pos: oklch(0.55 0.14 150);
+  --renewal-row: oklch(0.97 0.03 150);
+  --renewal-row-hover: oklch(0.94 0.05 150);
   --radius: 14px;
 }
 
@@ -163,6 +165,8 @@ body {
   --alert: oklch(0.30 0.04 70);
   --alert-ink: oklch(0.92 0.012 70);
   --pos: oklch(0.72 0.16 150);
+  --renewal-row: oklch(0.30 0.06 150);
+  --renewal-row-hover: oklch(0.36 0.09 150);
 
   /* Tailwind theme tokens */
   --color-primary: oklch(0.96 0.005 85);
