@@ -66,6 +66,11 @@ export default function RootLayout({
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=block"
         />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try { var t = localStorage.getItem('argus-theme'); if (t === 'dark') document.documentElement.dataset.theme = 'dark'; } catch (e) {}`,
+          }}
+        />
       </head>
       <body className="min-h-full">{children}</body>
     </html>

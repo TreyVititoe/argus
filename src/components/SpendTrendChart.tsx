@@ -65,7 +65,7 @@ export default function SpendTrendChart({ transactions }: { transactions: Transa
             <Tooltip
               cursor={{ stroke: "oklch(0.50 0.08 160)", strokeOpacity: 0.2 }}
               contentStyle={{
-                backgroundColor: "#ffffff",
+                backgroundColor: "var(--panel)",
                 border: "1px solid oklch(0.91 0.006 85)",
                 borderRadius: "10px",
                 fontSize: "12px",
