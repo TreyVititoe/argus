@@ -112,7 +112,16 @@ export default function LandingPage() {
           <div className={styles.previewBody}>
             <aside className={styles.pvSide}>
               <div className={styles.pvBrand}>
-                <span className={styles.pvBrandMark} /> Argus
+                <span className={styles.pvBrandMark} aria-hidden="true">
+                  <svg viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="128" height="128" rx="28" ry="28" fill="#4A7A67" />
+                    <rect x="30" y="30" width="68" height="68" rx="14" ry="14" fill="#F2EBDD" />
+                    <rect x="62" y="42" width="4" height="14" rx="2" fill="#4A7A67" />
+                    <rect x="62" y="72" width="4" height="14" rx="2" fill="#4A7A67" />
+                    <circle cx="64" cy="64" r="6" fill="#4A7A67" />
+                  </svg>
+                </span>
+                Argus
               </div>
               <a className={styles.on}>Dashboard</a>
               <a>Discovery</a>
