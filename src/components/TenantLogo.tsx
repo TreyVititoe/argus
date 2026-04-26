@@ -17,7 +17,7 @@ export default function TenantLogo({ company }: { company?: string }) {
         width={meta.width}
         height={meta.height}
         priority
-        style={{ width: "auto", height: 80 }}
+        style={{ width: "auto", height: 108 }}
       />
     </div>
   );
