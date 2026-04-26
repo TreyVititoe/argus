@@ -4,13 +4,36 @@
   --sand-line: oklch(0.90 0.018 80);
   --accent-ink: oklch(0.30 0.06 160);
 
-  background: var(--bg);
+  position: relative;
+  isolation: isolate;
+  background:
+    radial-gradient(60% 40% at 18% 0%, oklch(0.95 0.05 155 / 0.45), transparent 70%),
+    radial-gradient(50% 35% at 82% 12%, oklch(0.94 0.05 75 / 0.40), transparent 70%),
+    radial-gradient(70% 50% at 50% 100%, oklch(0.95 0.04 165 / 0.30), transparent 75%),
+    var(--bg);
   color: var(--ink);
   font-family: var(--font-inter), "Inter", system-ui, sans-serif;
   font-size: 15px;
   line-height: 1.5;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
+}
+
+/* Subtle SVG noise grain overlay for tactile feel — fixed so it doesn't move on scroll */
+.page::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.05;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.6 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+}
+
+.page > * {
+  position: relative;
+  z-index: 1;
 }
 
 .page a { color: inherit; }
