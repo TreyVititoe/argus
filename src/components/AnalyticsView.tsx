@@ -43,7 +43,7 @@ const COLORS = [
 
 const tooltipStyle = {
   contentStyle: {
-    backgroundColor: "#ffffff",
+    backgroundColor: "var(--panel)",
     border: "1px solid oklch(0.91 0.006 85)",
     borderRadius: "10px",
     fontSize: "12px",

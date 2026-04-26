@@ -73,7 +73,7 @@ export default function TopAgenciesBarChart({ agencies }: { agencies: AgencySumm
             <Tooltip
               cursor={{ fill: "oklch(0.95 0.02 160 / 0.4)" }}
               contentStyle={{
-                backgroundColor: "#ffffff",
+                backgroundColor: "var(--panel)",
                 border: "1px solid oklch(0.91 0.006 85)",
                 borderRadius: "10px",
                 fontSize: "12px",
