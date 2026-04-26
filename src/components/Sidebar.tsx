@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import styles from "./shell.module.css";
+import ThemeToggle from "./ThemeToggle";
 
 const DEFAULT_COMPANY = "cohesity";
 
@@ -124,6 +125,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
               </Link>
             );
           })}
+          <ThemeToggle className={styles.footerLink} />
         </div>
       </aside>
     </>
