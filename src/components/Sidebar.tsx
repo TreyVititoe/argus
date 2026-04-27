@@ -112,20 +112,28 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
         </Link>
 
         <div className={styles.sidebarFooter}>
-          {FOOTER_ITEMS.map((item) => {
+          {FOOTER_ITEMS.map((item, i) => {
             const active = isActive(item.sub);
-            return (
+            const link = (
               <Link
                 key={item.label}
                 href={hrefFor(item.sub)}
                 onClick={onClose}
-                className={`${styles.footerLink} ${active ? styles.active : ""}`}
+                className={`${styles.footerLink} ${active ? styles.active : ""} flex-1 min-w-0`}
               >
                 {item.label}
               </Link>
             );
+            if (i === 0) {
+              return (
+                <div key={item.label} className="flex items-center gap-2">
+                  {link}
+                  <ThemeToggle />
+                </div>
+              );
+            }
+            return link;
           })}
-          <ThemeToggle className={styles.footerLink} />
         </div>
       </aside>
     </>
