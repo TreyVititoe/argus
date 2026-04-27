@@ -21,6 +21,7 @@ import {
 } from "recharts";
 import { Transaction, StateInfo } from "@/lib/types";
 import { formatCurrency } from "@/lib/data-utils";
+import { getRegion, FL_REGIONS, Region } from "@/lib/regions";
 import rawData from "@/lib/data.json";
 import AppShell from "./AppShell";
 import PageHeader from "./PageHeader";
@@ -77,23 +78,38 @@ function drillLabel(d: NonNullable<Drill>): string {
 
 export default function AnalyticsView() {
   const [selectedStates, setSelectedStates] = useState<string[]>([]);
+  const [selectedRegion, setSelectedRegion] = useState<Region | "all">("all");
   const [drill, setDrill] = useState<Drill>(null);
+
+  // FL region applies whenever FL is in the selection, alongside other states.
+  const includesFL = selectedStates.includes("FL");
 
   useClearFilters(() => {
     setSelectedStates([]);
+    setSelectedRegion("all");
     setDrill(null);
   });
 
   const toggleState = (code: string) => {
     setSelectedStates((prev) => (prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code]));
+    if (code === "FL" && selectedStates.includes("FL")) setSelectedRegion("all");
   };
-  const clearStates = () => setSelectedStates([]);
+  const clearStates = () => {
+    setSelectedStates([]);
+    setSelectedRegion("all");
+  };
 
   const filteredTx = useMemo(() => {
     let base: Transaction[] = allTransactions;
     if (selectedStates.length > 0) {
       const set = new Set(selectedStates);
-      base = base.filter((t) => set.has(t.stateCode));
+      base = base.filter((t) => {
+        if (!set.has(t.stateCode)) return false;
+        if (t.stateCode === "FL" && includesFL && selectedRegion !== "all") {
+          return getRegion(t.agency, t.stateCode) === selectedRegion;
+        }
+        return true;
+      });
     }
     if (drill) {
       if (drill.kind === "competitor") base = base.filter((t) => t.competitor === drill.value);
@@ -103,7 +119,20 @@ export default function AnalyticsView() {
       else if (drill.kind === "keyword") base = base.filter((t) => t.keyword === drill.value);
     }
     return base;
-  }, [selectedStates, drill]);
+  }, [selectedStates, selectedRegion, includesFL, drill]);
+
+  const flRegionCounts = useMemo(() => {
+    if (!includesFL) return null;
+    const counts: Record<string, number> = { all: 0 };
+    for (const r of FL_REGIONS) counts[r] = 0;
+    const flTx = allTransactions.filter((t) => t.stateCode === "FL");
+    counts.all = flTx.length;
+    for (const t of flTx) {
+      const r = getRegion(t.agency, t.stateCode);
+      if (r) counts[r] = (counts[r] || 0) + 1;
+    }
+    return counts;
+  }, [includesFL]);
 
   const years = useMemo(() => {
     const s = new Set<number>();
@@ -230,6 +259,39 @@ export default function AnalyticsView() {
           total={allTransactions.length}
         />
       </div>
+
+      {includesFL && flRegionCounts && (
+        <div className="mb-6 flex items-center flex-wrap gap-2.5">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-on-surface-variant mr-2">
+            Florida region
+          </span>
+          {(["all", ...FL_REGIONS] as const).map((r) => {
+            const isActive = selectedRegion === r;
+            return (
+              <button
+                key={r}
+                onClick={() => setSelectedRegion(r as Region | "all")}
+                className={`shrink-0 inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full text-[12px] font-medium border transition-colors ${
+                  isActive
+                    ? "bg-primary border-primary text-on-primary"
+                    : "bg-surface-container-lowest border-outline-variant text-primary hover:border-[oklch(0.88_0.007_85)]"
+                }`}
+              >
+                {r === "all" ? "All FL" : r}
+                <span
+                  className={`text-[11px] font-medium rounded-full px-1.5 py-0.5 ${
+                    isActive
+                      ? "bg-on-primary/12 text-on-primary/80"
+                      : "bg-surface-container text-on-surface-variant"
+                  }`}
+                >
+                  {(flRegionCounts[r] || 0).toLocaleString()}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {/* Side-by-side row 1: Competitor Market Share + Agency Type */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">

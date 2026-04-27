@@ -69,8 +69,11 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
   const [selectedStates, setSelectedStates] = useState<string[]>([]);
   const [statesOpen, setStatesOpen] = useState(false);
   const [selectedRegion, setSelectedRegion] = useState<Region | "all">("all");
-  // FL region filter only applies when FL is the *only* selected state.
-  const isOnlyFL = selectedStates.length === 1 && selectedStates[0] === "FL";
+  // FL region filter applies whenever FL is in the selection — even alongside
+  // other states (e.g. a rep covering South FL + Georgia). The region only
+  // narrows FL transactions; other states pass through whole.
+  const includesFL = selectedStates.includes("FL");
+  const isOnlyFL = selectedStates.length === 1 && includesFL;
   const [opportunityFilter, setOpportunityFilter] = useState<"all" | "expiring" | "active" | "dormant">("all");
   const [hideMicrosoft, setHideMicrosoft] = useState(false);
   const [drill, setDrill] = useState<{ kind: "reseller" | "vendor" | "agency"; value: string } | null>(null);
@@ -105,10 +108,14 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
     if (yearMax !== null) base = base.filter((t) => t.year <= yearMax);
     if (selectedStates.length > 0) {
       const set = new Set(selectedStates);
-      base = base.filter((t) => set.has(t.stateCode));
-    }
-    if (isOnlyFL && selectedRegion !== "all") {
-      base = base.filter((t) => getRegion(t.agency, t.stateCode) === selectedRegion);
+      base = base.filter((t) => {
+        if (!set.has(t.stateCode)) return false;
+        // FL region filter narrows FL rows only; other states pass through.
+        if (t.stateCode === "FL" && includesFL && selectedRegion !== "all") {
+          return getRegion(t.agency, t.stateCode) === selectedRegion;
+        }
+        return true;
+      });
     }
     if (drill) {
       if (drill.kind === "reseller") {
@@ -129,13 +136,15 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
         t.company.toLowerCase().includes(q) ||
         t.keyword.toLowerCase().includes(q)
     );
-  }, [search, yearMin, yearMax, selectedStates, selectedRegion, hideMicrosoft, isOnlyFL, drill]);
+  }, [search, yearMin, yearMax, selectedStates, selectedRegion, hideMicrosoft, includesFL, drill]);
 
   const handleStateToggle = (code: string) => {
     setSelectedStates((prev) =>
       prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code]
     );
-    setSelectedRegion("all");
+    // Clear the FL region only when FL is being removed; preserve it when
+    // toggling other states so a "South FL + Georgia" combo stays intact.
+    if (code === "FL" && selectedStates.includes("FL")) setSelectedRegion("all");
   };
   const handleClearStates = () => {
     setSelectedStates([]);
@@ -143,7 +152,7 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
   };
 
   const flRegionCounts = useMemo(() => {
-    if (!isOnlyFL) return null;
+    if (!includesFL) return null;
     const counts: Record<string, number> = { all: 0 };
     for (const r of FL_REGIONS) counts[r] = 0;
     const flTx = allTransactions.filter((t) => t.stateCode === "FL");
@@ -153,7 +162,7 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
       if (r) counts[r] = (counts[r] || 0) + 1;
     }
     return counts;
-  }, [isOnlyFL]);
+  }, [includesFL]);
 
   const allAgencies = useMemo(() => summarizeByAgency(filteredTransactions), [filteredTransactions]);
   const allCompanies = useMemo(() => summarizeByCompany(filteredTransactions), [filteredTransactions]);
@@ -235,9 +244,14 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
             meta={
               selectedStates.length === 0
                 ? `${allStates.length} states · ${allTransactions.length.toLocaleString()} transactions`
-                : selectedStates.length === 1
-                ? allStates.find((s) => s.code === selectedStates[0])?.name || selectedStates[0]
-                : `${selectedStates.length} states selected`
+                : selectedStates
+                    .map((code) => {
+                      // Append the FL region label to FL when one is picked, so a
+                      // "South FL · Georgia" combo reads naturally inline.
+                      if (code === "FL" && selectedRegion !== "all") return selectedRegion;
+                      return allStates.find((s) => s.code === code)?.name || code;
+                    })
+                    .join(" · ")
             }
           />
 
@@ -338,9 +352,12 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
           <span>
             {selectedStates.length === 0
               ? "All states"
-              : selectedStates.length === 1
-              ? allStates.find((s) => s.code === selectedStates[0])?.name || selectedStates[0]
-              : `${selectedStates.length} states selected`}
+              : selectedStates
+                  .map((code) => {
+                    if (code === "FL" && selectedRegion !== "all") return selectedRegion;
+                    return allStates.find((s) => s.code === code)?.code || code;
+                  })
+                  .join(" · ")}
           </span>
           <span className="text-on-surface-variant">
             <svg
@@ -381,7 +398,7 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
         </div>
       )}
 
-      {isOnlyFL && flRegionCounts && (
+      {includesFL && flRegionCounts && (
         <div className="flex items-center flex-wrap gap-2.5">
           <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-on-surface-variant mr-2">
             Region
