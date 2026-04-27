@@ -59,6 +59,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const plausibleDomain = process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN;
   return (
     <html lang="en" className={`${inter.variable} h-full antialiased`}>
       <head>
@@ -71,6 +72,13 @@ export default function RootLayout({
             __html: `try { var t = localStorage.getItem('argus-theme'); if (t === 'dark') document.documentElement.dataset.theme = 'dark'; } catch (e) {}`,
           }}
         />
+        {plausibleDomain && (
+          <script
+            defer
+            data-domain={plausibleDomain}
+            src="https://plausible.io/js/script.js"
+          />
+        )}
       </head>
       <body className="min-h-full">{children}</body>
     </html>
