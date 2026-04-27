@@ -144,9 +144,10 @@ export default function LandingPage() {
             Argus
           </Link>
           <div className={styles.navLinks}>
-            <a href="#product" onClick={(e) => smoothScroll(e, "product")}>Product</a>
-            <a href="#coverage" onClick={(e) => smoothScroll(e, "coverage")}>Coverage</a>
-            <a href="#how" onClick={(e) => smoothScroll(e, "how")}>How it works</a>
+            <Link href="/why-argus">Why Argus</Link>
+            <Link href="/for-sales-leaders">For sales leaders</Link>
+            <Link href="/for-reps">For reps</Link>
+            <Link href="/faq">FAQ</Link>
             <Link href="/pricing">Pricing</Link>
           </div>
           <div className={styles.navRight}>
