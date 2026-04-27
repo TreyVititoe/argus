@@ -52,22 +52,58 @@ const tooltipStyle = {
   },
 };
 
+type Drill =
+  | { kind: "competitor"; value: string }
+  | { kind: "type"; value: string }
+  | { kind: "priceRange"; value: string }
+  | { kind: "year"; value: number }
+  | { kind: "keyword"; value: string }
+  | null;
+
+function drillLabel(d: NonNullable<Drill>): string {
+  switch (d.kind) {
+    case "competitor":
+      return `vendor · ${d.value}`;
+    case "type":
+      return `agency type · ${d.value}`;
+    case "priceRange":
+      return `deal size · ${d.value}`;
+    case "year":
+      return `year · ${d.value}`;
+    case "keyword":
+      return `keyword · ${d.value}`;
+  }
+}
+
 export default function AnalyticsView() {
   const [selectedStates, setSelectedStates] = useState<string[]>([]);
+  const [drill, setDrill] = useState<Drill>(null);
 
   useClearFilters(() => {
     setSelectedStates([]);
+    setDrill(null);
   });
 
-  const toggleState = (code: string) =>
+  const toggleState = (code: string) => {
     setSelectedStates((prev) => (prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code]));
+  };
   const clearStates = () => setSelectedStates([]);
 
   const filteredTx = useMemo(() => {
-    if (selectedStates.length === 0) return allTransactions;
-    const set = new Set(selectedStates);
-    return allTransactions.filter((t) => set.has(t.stateCode));
-  }, [selectedStates]);
+    let base: Transaction[] = allTransactions;
+    if (selectedStates.length > 0) {
+      const set = new Set(selectedStates);
+      base = base.filter((t) => set.has(t.stateCode));
+    }
+    if (drill) {
+      if (drill.kind === "competitor") base = base.filter((t) => t.competitor === drill.value);
+      else if (drill.kind === "type") base = base.filter((t) => (t.type || "Other") === drill.value);
+      else if (drill.kind === "priceRange") base = base.filter((t) => (t.priceRange || "Unknown") === drill.value);
+      else if (drill.kind === "year") base = base.filter((t) => t.year === drill.value);
+      else if (drill.kind === "keyword") base = base.filter((t) => t.keyword === drill.value);
+    }
+    return base;
+  }, [selectedStates, drill]);
 
   const years = useMemo(() => {
     const s = new Set<number>();
@@ -78,10 +114,9 @@ export default function AnalyticsView() {
   const spendByYear = useMemo(() => {
     const map = new Map<number, number>();
     for (const t of filteredTx) map.set(t.year, (map.get(t.year) || 0) + t.totalPrice);
-    return years.map((y) => ({ year: String(y), spend: map.get(y) || 0 }));
+    return years.map((y) => ({ year: String(y), yearNum: y, spend: map.get(y) || 0 }));
   }, [filteredTx, years]);
 
-  // Keyword battles — top 5 keywords across years
   const keywordTrends = useMemo(() => {
     const keywordTotals = new Map<string, number>();
     for (const t of filteredTx) {
@@ -107,7 +142,6 @@ export default function AnalyticsView() {
     };
   }, [filteredTx, years]);
 
-  // Competitor market share
   const competitorShare = useMemo(() => {
     const map = new Map<string, number>();
     for (const t of filteredTx) {
@@ -120,7 +154,6 @@ export default function AnalyticsView() {
       .map(([name, value]) => ({ name, value }));
   }, [filteredTx]);
 
-  // Agency type breakdown
   const typeBreakdown = useMemo(() => {
     const map = new Map<string, number>();
     for (const t of filteredTx) {
@@ -132,7 +165,6 @@ export default function AnalyticsView() {
       .map(([name, value]) => ({ name, value }));
   }, [filteredTx]);
 
-  // Price range distribution
   const priceRangeBreakdown = useMemo(() => {
     const map = new Map<string, number>();
     for (const t of filteredTx) {
@@ -148,27 +180,191 @@ export default function AnalyticsView() {
     <AppShell>
       <PageHeader eyebrow="Deep Dive" title="Analytics" />
 
-      <div className="mb-6">
-          <StateTabs
-            states={allStates}
-            selected={selectedStates}
-            onToggle={toggleState}
-            onClear={clearStates}
-            total={allTransactions.length}
-          />
+      {drill && (
+        <div
+          className="sticky top-2 z-30 mb-4 flex items-center justify-between gap-3 rounded-full border px-4 py-2 shadow-md backdrop-blur"
+          style={{
+            background: "var(--accent-bg)",
+            borderColor: "var(--accent)",
+            color: "var(--accent)",
+          }}
+        >
+          <span className="text-[12px] font-semibold truncate">
+            Drilling into <span className="font-bold">{drillLabel(drill)}</span> · {filteredTx.length.toLocaleString()} txns
+          </span>
+          <button
+            type="button"
+            onClick={() => setDrill(null)}
+            className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-bold text-white transition-transform hover:-translate-y-0.5"
+            style={{ background: "var(--accent)" }}
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 7v6h6" />
+              <path d="M21 17a9 9 0 0 0-15-6.7L3 13" />
+            </svg>
+            Undo
+          </button>
         </div>
+      )}
 
-        {/* Spend by Year — full width */}
-        <div className="bg-surface-container-lowest p-4 md:p-6 rounded-xl shadow-sm mb-6">
+      <div className="mb-6">
+        <StateTabs
+          states={allStates}
+          selected={selectedStates}
+          onToggle={toggleState}
+          onClear={clearStates}
+          total={allTransactions.length}
+        />
+      </div>
+
+      {/* Side-by-side row 1: Competitor Market Share + Agency Type */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <div className="bg-surface-container-lowest p-4 md:p-6 rounded-xl shadow-sm">
           <div className="mb-4">
             <h4 className="text-base md:text-lg font-headline font-bold text-primary">
-              Spend by Year
+              Competitor Market Share
             </h4>
-            <p className="text-xs text-on-surface-variant">Total procurement spend over time</p>
+            <p className="text-xs text-on-surface-variant">Click a bar to drill in · {competitorShare.length} vendors</p>
           </div>
-          <div className="h-[300px]">
+          <div className="h-[260px]">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={spendByYear} margin={{ top: 10, right: 16, left: -10, bottom: 0 }}>
+              <BarChart data={competitorShare} layout="vertical">
+                <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.91 0.006 85)" horizontal={false} />
+                <XAxis
+                  type="number"
+                  stroke="oklch(0.55 0.006 85)"
+                  fontSize={11}
+                  tickFormatter={(v) => formatCurrency(v)}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis
+                  type="category"
+                  dataKey="name"
+                  stroke="oklch(0.55 0.006 85)"
+                  fontSize={10}
+                  width={110}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <Tooltip
+                  {...tooltipStyle}
+                  formatter={(value: unknown) => [formatCurrency(Number(value)), "Spend"]}
+                />
+                <Bar
+                  dataKey="value"
+                  fill="oklch(0.50 0.08 160)"
+                  radius={[0, 4, 4, 0]}
+                  onClick={(d) => {
+                    const name = (d as { name?: string })?.name;
+                    if (name) setDrill({ kind: "competitor", value: name });
+                  }}
+                  style={{ cursor: "pointer" }}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        <div className="bg-surface-container-lowest p-4 md:p-6 rounded-xl shadow-sm">
+          <div className="mb-4">
+            <h4 className="text-base md:text-lg font-headline font-bold text-primary">
+              Spend by Agency Type
+            </h4>
+            <p className="text-xs text-on-surface-variant">Click a slice to drill in · State, county, K-12, higher ed</p>
+          </div>
+          <div className="h-[260px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={typeBreakdown}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={90}
+                  innerRadius={45}
+                  dataKey="value"
+                  label={({ name, percent }: { name?: string; percent?: number }) =>
+                    `${name || ""} ${((percent || 0) * 100).toFixed(0)}%`
+                  }
+                  labelLine={{ stroke: "oklch(0.72 0.005 85)" }}
+                  fontSize={10}
+                  onClick={(d) => {
+                    const name = (d as { name?: string })?.name;
+                    if (name) setDrill({ kind: "type", value: name });
+                  }}
+                  style={{ cursor: "pointer" }}
+                >
+                  {typeBreakdown.map((_, i) => (
+                    <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  {...tooltipStyle}
+                  formatter={(value: unknown) => [formatCurrency(Number(value)), "Spend"]}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
+
+      {/* Deal size full width */}
+      <div className="bg-surface-container-lowest p-4 md:p-6 rounded-xl shadow-sm mb-6">
+        <div className="mb-4">
+          <h4 className="text-base md:text-lg font-headline font-bold text-primary">
+            Deal Size Distribution
+          </h4>
+          <p className="text-xs text-on-surface-variant">Click a bar to drill in · Where the dollars are concentrated</p>
+        </div>
+        <div className="h-[260px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={priceRangeBreakdown}>
+              <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.91 0.006 85)" vertical={false} />
+              <XAxis dataKey="name" stroke="oklch(0.55 0.006 85)" fontSize={10} axisLine={false} tickLine={false} />
+              <YAxis
+                stroke="oklch(0.55 0.006 85)"
+                fontSize={11}
+                tickFormatter={(v) => formatCurrency(v)}
+                axisLine={false}
+                tickLine={false}
+              />
+              <Tooltip
+                {...tooltipStyle}
+                formatter={(value: unknown) => [formatCurrency(Number(value)), "Spend"]}
+              />
+              <Bar
+                dataKey="value"
+                fill="#f59e0b"
+                radius={[4, 4, 0, 0]}
+                onClick={(d) => {
+                  const name = (d as { name?: string })?.name;
+                  if (name) setDrill({ kind: "priceRange", value: name });
+                }}
+                style={{ cursor: "pointer" }}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* The two former-top charts, now half-size and below */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <div className="bg-surface-container-lowest p-4 md:p-6 rounded-xl shadow-sm">
+          <div className="mb-4">
+            <h4 className="text-base md:text-lg font-headline font-bold text-primary">Spend by Year</h4>
+            <p className="text-xs text-on-surface-variant">Click a year to drill in · Total over time</p>
+          </div>
+          <div className="h-[220px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart
+                data={spendByYear}
+                margin={{ top: 10, right: 16, left: -10, bottom: 0 }}
+                onClick={(state) => {
+                  const s = state as { activePayload?: { payload?: { yearNum?: number } }[] } | undefined;
+                  const yearNum = s?.activePayload?.[0]?.payload?.yearNum;
+                  if (typeof yearNum === "number") setDrill({ kind: "year", value: yearNum });
+                }}
+              >
                 <defs>
                   <linearGradient id="analyticsGradient" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="oklch(0.50 0.08 160)" stopOpacity={0.3} />
@@ -194,21 +390,21 @@ export default function AnalyticsView() {
                   stroke="oklch(0.50 0.08 160)"
                   strokeWidth={3}
                   fill="url(#analyticsGradient)"
+                  style={{ cursor: "pointer" }}
                 />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        {/* Keyword Trends */}
-        <div className="bg-surface-container-lowest p-4 md:p-6 rounded-xl shadow-sm mb-6">
+        <div className="bg-surface-container-lowest p-4 md:p-6 rounded-xl shadow-sm">
           <div className="mb-4">
             <h4 className="text-base md:text-lg font-headline font-bold text-primary">Product Keyword Battles</h4>
             <p className="text-xs text-on-surface-variant">
-              Top 5 products competing for market share
+              Click a keyword in the legend to drill in · Top 5 products competing for share
             </p>
           </div>
-          <div className="h-[300px]">
+          <div className="h-[220px]">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={keywordTrends.data} margin={{ top: 10, right: 16, left: -10, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.91 0.006 85)" vertical={false} />
@@ -224,7 +420,13 @@ export default function AnalyticsView() {
                   {...tooltipStyle}
                   formatter={(value: unknown) => [formatCurrency(Number(value))]}
                 />
-                <Legend wrapperStyle={{ fontSize: "11px", color: "oklch(0.55 0.006 85)" }} />
+                <Legend
+                  wrapperStyle={{ fontSize: "11px", color: "oklch(0.55 0.006 85)", cursor: "pointer" }}
+                  onClick={(o) => {
+                    const v = (o as { value?: string })?.value;
+                    if (v) setDrill({ kind: "keyword", value: v });
+                  }}
+                />
                 {keywordTrends.keywords.map((kw, i) => (
                   <Line
                     key={kw}
@@ -239,113 +441,65 @@ export default function AnalyticsView() {
             </ResponsiveContainer>
           </div>
         </div>
+      </div>
 
-        {/* Side-by-side */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-          <div className="bg-surface-container-lowest p-4 md:p-6 rounded-xl shadow-sm">
-            <div className="mb-4">
-              <h4 className="text-base md:text-lg font-headline font-bold text-primary">
-                Competitor Market Share
-              </h4>
-              <p className="text-xs text-on-surface-variant">Total spend by major competitor</p>
-            </div>
-            <div className="h-[260px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={competitorShare} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.91 0.006 85)" horizontal={false} />
-                  <XAxis
-                    type="number"
-                    stroke="oklch(0.55 0.006 85)"
-                    fontSize={11}
-                    tickFormatter={(v) => formatCurrency(v)}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <YAxis
-                    type="category"
-                    dataKey="name"
-                    stroke="oklch(0.55 0.006 85)"
-                    fontSize={10}
-                    width={110}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <Tooltip
-                    {...tooltipStyle}
-                    formatter={(value: unknown) => [formatCurrency(Number(value)), "Spend"]}
-                  />
-                  <Bar dataKey="value" fill="oklch(0.50 0.08 160)" radius={[0, 4, 4, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          <div className="bg-surface-container-lowest p-4 md:p-6 rounded-xl shadow-sm">
-            <div className="mb-4">
-              <h4 className="text-base md:text-lg font-headline font-bold text-primary">
-                Spend by Agency Type
-              </h4>
-              <p className="text-xs text-on-surface-variant">State, county, K-12, higher ed, etc.</p>
-            </div>
-            <div className="h-[260px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={typeBreakdown}
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={90}
-                    innerRadius={45}
-                    dataKey="value"
-                    label={({ name, percent }: { name?: string; percent?: number }) =>
-                      `${name || ""} ${((percent || 0) * 100).toFixed(0)}%`
-                    }
-                    labelLine={{ stroke: "oklch(0.72 0.005 85)" }}
-                    fontSize={10}
-                  >
-                    {typeBreakdown.map((_, i) => (
-                      <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    {...tooltipStyle}
-                    formatter={(value: unknown) => [formatCurrency(Number(value)), "Spend"]}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        </div>
-
-        {/* Price Range Distribution */}
-        <div className="bg-surface-container-lowest p-4 md:p-6 rounded-xl shadow-sm">
-          <div className="mb-4">
-            <h4 className="text-base md:text-lg font-headline font-bold text-primary">
-              Deal Size Distribution
+      {drill && (
+        <div className="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden mb-6">
+          <div className="px-4 md:px-6 py-3 bg-surface-container-low/30 border-b border-surface-container">
+            <h4 className="text-base font-headline font-bold text-primary">
+              Matching transactions
             </h4>
-            <p className="text-xs text-on-surface-variant">Where the dollars are concentrated</p>
+            <p className="text-xs text-on-surface-variant">
+              {filteredTx.length.toLocaleString()} rows · showing top 200
+            </p>
           </div>
-          <div className="h-[260px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={priceRangeBreakdown}>
-                <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.91 0.006 85)" vertical={false} />
-                <XAxis dataKey="name" stroke="oklch(0.55 0.006 85)" fontSize={10} axisLine={false} tickLine={false} />
-                <YAxis
-                  stroke="oklch(0.55 0.006 85)"
-                  fontSize={11}
-                  tickFormatter={(v) => formatCurrency(v)}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <Tooltip
-                  {...tooltipStyle}
-                  formatter={(value: unknown) => [formatCurrency(Number(value)), "Spend"]}
-                />
-                <Bar dataKey="value" fill="#f59e0b" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+          <div className="overflow-x-auto max-h-[500px] overflow-y-auto">
+            <table className="w-full text-left">
+              <thead className="sticky top-0 bg-surface-container-lowest z-10 border-b border-surface-container">
+                <tr className="text-on-surface-variant text-[9px] font-bold uppercase tracking-widest">
+                  <th className="px-4 md:px-6 py-3">Agency</th>
+                  <th className="px-4 md:px-6 py-3 hidden sm:table-cell">State</th>
+                  <th className="px-4 md:px-6 py-3 hidden md:table-cell">Year</th>
+                  <th className="px-4 md:px-6 py-3">Vendor</th>
+                  <th className="px-4 md:px-6 py-3 hidden lg:table-cell">Keyword</th>
+                  <th className="px-4 md:px-6 py-3 text-right">Amount</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-surface-container/30">
+                {[...filteredTx]
+                  .sort((a, b) => b.totalPrice - a.totalPrice)
+                  .slice(0, 200)
+                  .map((t, i) => (
+                    <tr key={i} className="hover:bg-surface transition-colors">
+                      <td className="px-4 md:px-6 py-2.5 text-xs font-bold text-primary truncate max-w-[280px]" title={t.agency}>
+                        {t.agency}
+                      </td>
+                      <td className="px-4 md:px-6 py-2.5 text-xs text-on-surface-variant hidden sm:table-cell">
+                        {t.stateCode}
+                      </td>
+                      <td className="px-4 md:px-6 py-2.5 text-xs text-on-surface-variant hidden md:table-cell">
+                        {t.year}
+                      </td>
+                      <td className="px-4 md:px-6 py-2.5 text-xs text-primary truncate max-w-[160px]">
+                        {t.company}
+                      </td>
+                      <td className="px-4 md:px-6 py-2.5 text-xs hidden lg:table-cell">
+                        {t.keyword && (
+                          <span className="px-1.5 py-0.5 rounded bg-secondary-fixed/30 text-secondary font-medium">
+                            {t.keyword}
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-4 md:px-6 py-2.5 text-xs md:text-sm font-bold text-primary text-right whitespace-nowrap">
+                        {formatCurrency(t.totalPrice)}
+                      </td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
           </div>
         </div>
+      )}
     </AppShell>
   );
 }
