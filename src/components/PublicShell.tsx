@@ -1,50 +1,7 @@
 import Link from "next/link";
+import SiteHeader from "./SiteHeader";
 
-function BrandMark() {
-  return (
-    <span className="block w-8 h-8 rounded-[7px] overflow-hidden shadow-sm">
-      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-        <rect x="8" y="8" width="84" height="84" rx="22" fill="#faf8f3" />
-        <rect x="46" y="20" width="8" height="60" rx="4" fill="#4A7A67" />
-        <circle cx="50" cy="50" r="18" fill="#4A7A67" />
-        <circle cx="50" cy="50" r="6" fill="#faf8f3" />
-      </svg>
-    </span>
-  );
-}
-
-const HEADER_LINKS: { label: string; href: string }[] = [
-  { label: "Why Argus", href: "/why-argus" },
-  { label: "For sales leaders", href: "/for-sales-leaders" },
-  { label: "For reps", href: "/for-reps" },
-  { label: "FAQ", href: "/faq" },
-  { label: "Pricing", href: "/pricing" },
-];
-
-export function PublicHeader() {
-  return (
-    <header className="flex items-center justify-between gap-6 px-8 md:px-12 py-6">
-      <Link href="/" className="flex items-center gap-3 shrink-0">
-        <BrandMark />
-        <span className="text-[18px] font-semibold tracking-tight">Argus</span>
-      </Link>
-      <nav className="hidden lg:flex items-center gap-7 flex-1 justify-center text-[14px] font-medium" style={{ color: "var(--ink-2)" }}>
-        {HEADER_LINKS.map((l) => (
-          <Link key={l.href} href={l.href} className="hover:text-primary transition-colors">
-            {l.label}
-          </Link>
-        ))}
-      </nav>
-      <Link
-        href="/login"
-        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-[10px] text-[14px] font-bold text-white shrink-0"
-        style={{ background: "oklch(0.68 0.07 160)" }}
-      >
-        Sign In
-      </Link>
-    </header>
-  );
-}
+export const PublicHeader = SiteHeader;
 
 const FOOTER_COLS: { heading: string; links: { label: string; href: string; external?: boolean }[] }[] = [
   {

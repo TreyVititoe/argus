@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef, FormEvent } from "react";
 import Link from "next/link";
 import styles from "./LandingPage.module.css";
+import SiteHeader from "./SiteHeader";
 
 function BrandMarkSVG() {
   return (
@@ -89,20 +90,12 @@ function generateTopo(): TopoPath[] {
 }
 
 export default function LandingPage() {
-  const [scrolled, setScrolled] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [topoPaths, setTopoPaths] = useState<TopoPath[]>([]);
   const btnRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     setTopoPaths(generateTopo());
-  }, []);
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   function smoothScroll(e: React.MouseEvent<HTMLAnchorElement>, targetId: string) {
@@ -134,29 +127,7 @@ export default function LandingPage() {
         </svg>
       </div>
 
-      {/* NAV */}
-      <nav className={`${styles.nav} ${scrolled ? styles.navScrolled : ""}`}>
-        <div className={styles.navInner}>
-          <Link href="/" className={styles.brand}>
-            <span className={styles.brandMark} aria-hidden="true">
-              <BrandMarkSVG />
-            </span>
-            Argus
-          </Link>
-          <div className={styles.navLinks}>
-            <Link href="/why-argus">Why Argus</Link>
-            <Link href="/for-sales-leaders">For sales leaders</Link>
-            <Link href="/for-reps">For reps</Link>
-            <Link href="/faq">FAQ</Link>
-            <Link href="/pricing">Pricing</Link>
-          </div>
-          <div className={styles.navRight}>
-            <Link className={`${styles.btn} ${styles.btnAccent}`} href="/login">
-              Sign In
-            </Link>
-          </div>
-        </div>
-      </nav>
+      <SiteHeader />
 
       {/* HERO */}
       <section className={styles.hero}>
