@@ -134,6 +134,13 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
             }
             return link;
           })}
+          <Link
+            href="/glossary"
+            onClick={onClose}
+            className={styles.footerLink}
+          >
+            Glossary
+          </Link>
         </div>
       </aside>
     </>

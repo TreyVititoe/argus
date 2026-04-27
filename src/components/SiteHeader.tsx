@@ -14,11 +14,12 @@ const HEADER_LINKS: { label: string; href: string }[] = [
 function BrandMark() {
   return (
     <span className="block w-8 h-8 rounded-[7px] overflow-hidden shadow-sm">
-      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-        <rect x="8" y="8" width="84" height="84" rx="22" fill="#faf8f3" />
-        <rect x="46" y="20" width="8" height="60" rx="4" fill="#4A7A67" />
-        <circle cx="50" cy="50" r="18" fill="#4A7A67" />
-        <circle cx="50" cy="50" r="6" fill="#faf8f3" />
+      <svg viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" style={{ width: "100%", height: "100%", display: "block" }}>
+        <rect width="128" height="128" rx="28" ry="28" fill="#4A7A67" />
+        <rect x="30" y="30" width="68" height="68" rx="14" ry="14" fill="#F2EBDD" />
+        <rect x="62" y="42" width="4" height="14" rx="2" fill="#4A7A67" />
+        <rect x="62" y="72" width="4" height="14" rx="2" fill="#4A7A67" />
+        <circle cx="64" cy="64" r="6" fill="#4A7A67" />
       </svg>
     </span>
   );
