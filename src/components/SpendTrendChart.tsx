@@ -47,20 +47,22 @@ export default function SpendTrendChart({ transactions }: { transactions: Transa
                 <stop offset="100%" stopColor="oklch(0.50 0.08 160)" stopOpacity={0} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.91 0.006 85)" vertical={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--line)" vertical={false} />
             <XAxis
               dataKey="year"
-              stroke="oklch(0.55 0.006 85)"
+              stroke="var(--ink-3)"
               fontSize={11}
               axisLine={false}
               tickLine={false}
+              tick={{ fill: "var(--ink-3)" }}
             />
             <YAxis
-              stroke="oklch(0.55 0.006 85)"
+              stroke="var(--ink-3)"
               fontSize={11}
               tickFormatter={(v) => formatCurrency(v)}
               axisLine={false}
               tickLine={false}
+              tick={{ fill: "var(--ink-3)" }}
             />
             <Tooltip
               cursor={{ stroke: "oklch(0.50 0.08 160)", strokeOpacity: 0.2 }}
