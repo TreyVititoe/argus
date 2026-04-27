@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { TENANT_COOKIE_NAME, readSession } from "@/lib/auth";
+import { getSupabaseProxy } from "@/lib/supabase/middleware";
+import { tenantForEmail } from "@/lib/auth";
 
 const PUBLIC_PATHS = new Set([
   "/",
@@ -40,35 +41,41 @@ export async function proxy(req: NextRequest) {
     return NextResponse.next();
   }
 
+  // Always run Supabase so tokens refresh via response cookies.
+  const { user, response } = await getSupabaseProxy(req);
+  const tenant = user?.email ? tenantForEmail(user.email) : null;
+
   if (PUBLIC_PATHS.has(pathname)) {
-    return NextResponse.next();
+    return response;
+  }
+
+  // /auth/* (callback, etc.) — let Supabase handle, no gate.
+  if (pathname.startsWith("/auth/")) {
+    return response;
   }
 
   const firstSegment = pathname.split("/").filter(Boolean)[0]?.toLowerCase();
-  if (!firstSegment) return NextResponse.next();
+  if (!firstSegment) return response;
 
-  const cookieValue = req.cookies.get(TENANT_COOKIE_NAME)?.value;
-  const session = await readSession(cookieValue);
-
-  // Legacy flat URLs: /analytics, /discovery, etc. — redirect to /{tenant}/{slug}.
+  // Legacy flat URLs: /analytics, /discovery, etc. → /{tenant}/{slug} or /login.
   if (RESERVED_SUBROUTES.has(firstSegment)) {
     const url = req.nextUrl.clone();
-    if (session) {
-      url.pathname = `/${session.tenant}/${firstSegment}`;
+    if (tenant) {
+      url.pathname = `/${tenant}/${firstSegment}`;
       return NextResponse.redirect(url);
     }
     url.pathname = "/login";
     return NextResponse.redirect(url);
   }
 
-  // Otherwise treat the first segment as a company slug.
-  if (!session || session.tenant !== firstSegment) {
+  // Otherwise the first segment is a company slug — must match the user's tenant.
+  if (!tenant || tenant !== firstSegment) {
     const url = req.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
   }
 
-  return NextResponse.next();
+  return response;
 }
 
 export const config = {

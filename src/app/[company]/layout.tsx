@@ -1,5 +1,5 @@
-import { cookies } from "next/headers";
-import { TENANT_COOKIE_NAME, readSession } from "@/lib/auth";
+import { getSupabaseServer } from "@/lib/supabase/server";
+import { tenantForEmail } from "@/lib/auth";
 import { SessionProvider } from "@/components/SessionProvider";
 import TenantOnboarding from "@/components/TenantOnboarding";
 import { getTenantConfig } from "@/lib/tenants";
@@ -12,8 +12,16 @@ export default async function CompanyLayout({
   params: Promise<{ company: string }>;
 }) {
   const { company } = await params;
-  const cookieStore = await cookies();
-  const session = await readSession(cookieStore.get(TENANT_COOKIE_NAME)?.value);
+  const supabase = await getSupabaseServer();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const session =
+    user?.email && tenantForEmail(user.email)
+      ? { tenant: tenantForEmail(user.email)!, email: user.email }
+      : null;
+
   const tenant = getTenantConfig(company);
 
   if (!tenant.hasData) {
