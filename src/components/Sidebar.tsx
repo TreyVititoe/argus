@@ -106,9 +106,9 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
             );
           })}
           <Link
-            href="/glossary"
+            href={hrefFor("glossary")}
             onClick={onClose}
-            className={`${styles.navItem} ${pathname === "/glossary" ? styles.active : ""}`}
+            className={`${styles.navItem} ${isActive("glossary") ? styles.active : ""}`}
           >
             <span className={styles.dot} />
             Glossary
