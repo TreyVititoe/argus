@@ -48,18 +48,40 @@ Scan the QR code with Expo Go (Android) or the camera app (iOS).
 - Auth shell: email → 6-digit code → verified session
 - Allowed-domain check (`cohesity.com`, `treyvititoe.com`) before sending the code
 - Auto sign-in on subsequent launches via persisted session in AsyncStorage
-- Sign-out from the placeholder dashboard
+- Bottom-tab nav: Dashboard / Customers / Resellers / Vendors / Analytics
+- Dashboard with KPI tiles + top vendors / resellers / states lists
+- Customers tab: top-100 transactions with live search filter
+- Resellers and Vendors tabs: ranked share lists with bars
+- Analytics tab: spend-by-year horizontal bars (real charts come next)
+- Sign-out from any screen
+
+## Data snapshot
+
+The mobile app does *not* bundle the 14MB raw `data.json` from the web side.
+Instead, `mobile/scripts/build-snapshot.js` reads it and writes a precomputed
+~25KB pair of JSON files into `mobile/src/data/`:
+
+- `dashboard-stats.json` — totals, top-N aggregates, year spend, states
+- `top-transactions.json` — top 100 transactions by amount
+
+Re-run after the web `src/lib/data.json` changes:
+
+```bash
+npm run snapshot
+```
+
+(Long-term we move data fetching to Supabase / an API and drop the snapshot.)
 
 ## What's next (rough order)
 
-1. Tenant home / "Dashboard" screen with KPI tiles
-2. Customers, Resellers, Vendors list screens (read from `data.json` shipped
-   with the bundle, or move to a Supabase table for both web+mobile)
-3. Charts — `victory-native` is the natural Recharts substitute
-4. Filters (state multi-select, year/keyword multi-select) — share state shape
-   with the web `useClearFilters` event-bus pattern
+1. Charts — `victory-native` is the natural Recharts substitute (donuts +
+   bars + area for Spend by Year)
+2. Click-to-drill parity with web (slice / bar → narrows the screen,
+   sticky Undo)
+3. Filter UI (state multi-select, year/keyword multi-select)
+4. Move data off the bundled snapshot to a Supabase table or API
 5. EAS Build + App Store Connect + Play Console setup
-6. Push notifications (renewal-window alerts) once the web data is moved server-side
+6. Push notifications for renewal-window alerts
 
 ## Architecture notes
 

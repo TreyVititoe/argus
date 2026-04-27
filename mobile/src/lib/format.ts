@@ -1,0 +1,14 @@
+// Mirrors src/lib/data-utils.ts on the web side. Kept in sync manually
+// for now; a shared package can come when the second consumer makes it
+// worth the build setup.
+
+export function formatCurrency(amount: number): string {
+  if (amount >= 1_000_000_000) return `$${(amount / 1_000_000_000).toFixed(1)}B`;
+  if (amount >= 1_000_000) return `$${(amount / 1_000_000).toFixed(1)}M`;
+  if (amount >= 1_000) return `$${(amount / 1_000).toFixed(1)}K`;
+  return `$${amount.toFixed(0)}`;
+}
+
+export function formatNumber(n: number): string {
+  return n.toLocaleString();
+}
