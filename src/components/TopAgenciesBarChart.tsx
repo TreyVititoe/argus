@@ -19,7 +19,12 @@ function shortName(name: string): string {
   return `${name.slice(0, 20)}…`;
 }
 
-export default function TopAgenciesBarChart({ agencies }: { agencies: AgencySummary[] }) {
+interface TopAgenciesBarChartProps {
+  agencies: AgencySummary[];
+  onAgencyClick?: (name: string) => void;
+}
+
+export default function TopAgenciesBarChart({ agencies, onAgencyClick }: TopAgenciesBarChartProps) {
   const [expanded, setExpanded] = useState(false);
   const sortedAll = [...agencies].sort((a, b) => b.totalSpend - a.totalSpend);
   const top = sortedAll.slice(0, 8);
@@ -32,9 +37,7 @@ export default function TopAgenciesBarChart({ agencies }: { agencies: AgencySumm
 
   return (
     <div
-      onClick={() => setExpanded(true)}
-      className="col-span-12 lg:col-span-7 bg-surface-container-lowest border border-outline-variant rounded-[14px] p-5 md:p-6 cursor-pointer transition-colors hover:border-[oklch(0.88_0.007_85)]"
-      title="Click to see every agency"
+      className="col-span-12 lg:col-span-7 bg-surface-container-lowest border border-outline-variant rounded-[14px] p-5 md:p-6 transition-colors"
     >
       <div className="mb-4 flex items-start justify-between gap-3">
         <div className="min-w-0">
@@ -112,7 +115,16 @@ export default function TopAgenciesBarChart({ agencies }: { agencies: AgencySumm
                 return full || "";
               }}
             />
-            <Bar dataKey="spend" radius={[0, 6, 6, 0]} animationDuration={600}>
+            <Bar
+              dataKey="spend"
+              radius={[0, 6, 6, 0]}
+              animationDuration={600}
+              onClick={(d) => {
+                const full = (d as { fullName?: string })?.fullName;
+                if (full && onAgencyClick) onAgencyClick(full);
+              }}
+              style={onAgencyClick ? { cursor: "pointer" } : undefined}
+            >
               {data.map((entry, index) => (
                 <Cell
                   key={index}
