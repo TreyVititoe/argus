@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useClearFilters } from "@/lib/use-clear-filters";
 import { Transaction, StateInfo } from "@/lib/types";
 import { formatCurrency } from "@/lib/data-utils";
 import rawData from "@/lib/data.json";
@@ -115,6 +116,12 @@ export default function VendorsView() {
 
   const totalSpend = vendors.reduce((s, v) => s + v.totalSpend, 0);
   const maxSpend = vendors[0]?.totalSpend || 1;
+
+  useClearFilters(() => {
+    setSearch("");
+    setSelectedState("ALL");
+    setExpanded(null);
+  });
 
   return (
     <AppShell search={search} onSearchChange={setSearch}>

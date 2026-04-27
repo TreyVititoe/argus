@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useClearFilters } from "@/lib/use-clear-filters";
 import {
   AreaChart,
   Area,
@@ -53,6 +54,10 @@ const tooltipStyle = {
 
 export default function AnalyticsView() {
   const [selectedState, setSelectedState] = useState<string>("ALL");
+
+  useClearFilters(() => {
+    setSelectedState("ALL");
+  });
 
   const filteredTx = useMemo(() => {
     if (selectedState === "ALL") return allTransactions;

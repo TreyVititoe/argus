@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useRef } from "react";
+import { useClearFilters } from "@/lib/use-clear-filters";
 import { Transaction, StateInfo } from "@/lib/types";
 import {
   summarizeByAgency,
@@ -77,6 +78,17 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
       opportunitiesRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 50);
   };
+
+  useClearFilters(() => {
+    setSearch("");
+    setYearMin(null);
+    setYearMax(null);
+    setYearsOpen(false);
+    setSelectedState("ALL");
+    setStatesOpen(false);
+    setSelectedRegion("all");
+    setOpportunityFilter("all");
+  });
 
   const filteredTransactions = useMemo(() => {
     let base = allTransactions;
