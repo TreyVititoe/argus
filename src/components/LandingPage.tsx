@@ -17,102 +17,74 @@ function BrandMarkSVG() {
 
 type TopoPath = { d: string; thick: boolean };
 
+// Topographic background — concentric organic loops around several "centers",
+// with multi-frequency sinusoidal radius perturbation per ring for a
+// hand-drawn / map-engraving feel. Ported from Landing Page v2.html.
 function generateTopo(): TopoPath[] {
-  const W = 1600;
-  const H = 1000;
-  const cols = 50;
-  const rows = 32;
-  const cellW = W / cols;
-  const cellH = H / rows;
+  type Center = {
+    cx: number;
+    cy: number;
+    baseR: number;
+    rings: number;
+    freq: number[];
+    phase: number[];
+    wobble: number;
+    ringStep: number;
+  };
 
-  // Multi-octave smooth field. Re-randomized each mount via seed.
-  const seed = Math.random() * 100;
-  const noise = (x: number, y: number) =>
-    Math.sin(x * 0.08 + seed) * Math.cos(y * 0.06 + seed * 1.3) * 0.6 +
-    Math.sin(x * 0.18 - y * 0.12 + 2.1) * 0.35 +
-    Math.sin(x * 0.05 + y * 0.21 + 4.2) * 0.45 +
-    Math.cos((x + y) * 0.07 + 1.7) * 0.25;
+  const centers: Center[] = [
+    { cx: 280,  cy: 760, baseR: 60, rings: 11, freq: [3, 5, 7],  phase: [0.3, 1.1, 2.4], wobble: 18, ringStep: 32 },
+    { cx: 1380, cy: 240, baseR: 50, rings: 13, freq: [4, 6, 8],  phase: [1.7, 0.4, 2.0], wobble: 22, ringStep: 36 },
+    { cx: 1480, cy: 880, baseR: 40, rings: 9,  freq: [3, 5, 9],  phase: [0.8, 2.6, 1.2], wobble: 14, ringStep: 30 },
+    { cx: 180,  cy: 120, baseR: 45, rings: 8,  freq: [4, 7, 11], phase: [2.1, 0.5, 1.8], wobble: 16, ringStep: 28 },
+    { cx: 820,  cy: 480, baseR: 30, rings: 14, freq: [5, 8, 12], phase: [1.0, 2.0, 0.6], wobble: 12, ringStep: 26 },
+  ];
 
-  const grid: number[][] = [];
-  for (let r = 0; r <= rows; r++) {
-    const row: number[] = [];
-    for (let c = 0; c <= cols; c++) row.push(noise(c, r));
-    grid.push(row);
-  }
-
-  const thresholds = [-1.2, -0.8, -0.4, 0, 0.4, 0.8, 1.2];
-  const out: TopoPath[] = [];
-
-  for (let i = 0; i < thresholds.length; i++) {
-    const t = thresholds[i];
-    const segs: string[] = [];
-    for (let r = 0; r < rows; r++) {
-      for (let c = 0; c < cols; c++) {
-        const a = grid[r][c];
-        const b = grid[r][c + 1];
-        const c2 = grid[r + 1][c + 1];
-        const d = grid[r + 1][c];
-
-        let idx = 0;
-        if (a > t) idx |= 1;
-        if (b > t) idx |= 2;
-        if (c2 > t) idx |= 4;
-        if (d > t) idx |= 8;
-
-        if (idx === 0 || idx === 15) continue;
-
-        const x = c * cellW;
-        const y = r * cellH;
-        const lerp = (v1: number, v2: number) =>
-          Math.max(0, Math.min(1, (t - v1) / (v2 - v1)));
-        const N: [number, number] = [x + lerp(a, b) * cellW, y];
-        const E: [number, number] = [x + cellW, y + lerp(b, c2) * cellH];
-        const S: [number, number] = [x + lerp(d, c2) * cellW, y + cellH];
-        const Wp: [number, number] = [x, y + lerp(a, d) * cellH];
-
-        const fmt = (p: [number, number]) => `${p[0].toFixed(1)} ${p[1].toFixed(1)}`;
-        const seg = (p1: [number, number], p2: [number, number]) =>
-          segs.push(`M${fmt(p1)}L${fmt(p2)}`);
-
-        switch (idx) {
-          case 1:
-          case 14:
-            seg(Wp, S);
-            break;
-          case 2:
-          case 13:
-            seg(S, E);
-            break;
-          case 3:
-          case 12:
-            seg(Wp, E);
-            break;
-          case 4:
-          case 11:
-            seg(N, E);
-            break;
-          case 6:
-          case 9:
-            seg(N, S);
-            break;
-          case 7:
-          case 8:
-            seg(Wp, N);
-            break;
-          case 5:
-            seg(Wp, N);
-            seg(S, E);
-            break;
-          case 10:
-            seg(Wp, S);
-            seg(N, E);
-            break;
-        }
+  function ringPath(
+    cx: number,
+    cy: number,
+    r: number,
+    freq: number[],
+    phase: number[],
+    wobble: number
+  ): string {
+    const N = 220;
+    const pts: [number, number][] = [];
+    for (let i = 0; i <= N; i++) {
+      const a = (i / N) * Math.PI * 2;
+      let dr = 0;
+      for (let k = 0; k < freq.length; k++) {
+        dr += Math.sin(a * freq[k] + phase[k]) * (wobble / (k + 1));
       }
+      const stretchX = 1 + Math.sin(phase[0]) * 0.18;
+      const stretchY = 1 + Math.cos(phase[1]) * 0.12;
+      const rEff = r + dr;
+      const x = cx + Math.cos(a) * rEff * stretchX;
+      const y = cy + Math.sin(a) * rEff * stretchY;
+      pts.push([x, y]);
     }
-    out.push({ d: segs.join(" "), thick: i % 3 === 0 });
+    let d = `M ${pts[0][0].toFixed(1)} ${pts[0][1].toFixed(1)}`;
+    for (let i = 1; i < pts.length; i++) {
+      const p0 = pts[i - 1];
+      const p1 = pts[i];
+      const cx1 = (p0[0] + p1[0]) / 2;
+      const cy1 = (p0[1] + p1[1]) / 2;
+      d += ` Q ${p0[0].toFixed(1)} ${p0[1].toFixed(1)} ${cx1.toFixed(1)} ${cy1.toFixed(1)}`;
+    }
+    d += " Z";
+    return d;
   }
 
+  const out: TopoPath[] = [];
+  for (const c of centers) {
+    for (let i = 0; i < c.rings; i++) {
+      const r = c.baseR + i * c.ringStep;
+      const phase = c.phase.map((p, k) => p + i * 0.18 * (k + 1));
+      const wobble = c.wobble * (0.7 + i * 0.06);
+      const d = ringPath(c.cx, c.cy, r, c.freq, phase, wobble);
+      out.push({ d, thick: i % 5 === 0 && i > 0 });
+    }
+  }
   return out;
 }
 
