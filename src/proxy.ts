@@ -31,7 +31,7 @@ const RESERVED_SUBROUTES = new Set([
   "help",
 ]);
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // Static assets in /public/* (anything with a file extension in the last segment).
