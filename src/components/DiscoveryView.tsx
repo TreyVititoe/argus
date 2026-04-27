@@ -27,7 +27,10 @@ export default function DiscoveryView() {
   const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
   const [sortKey, setSortKey] = useState<SortKey>("amount");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
-  const isOnlyFL = selectedStates.length === 1 && selectedStates[0] === "FL";
+  // FL region pills + filter apply whenever FL is in the selection, even
+  // alongside other states. The region only narrows FL rows; other states
+  // pass through whole.
+  const includesFL = selectedStates.includes("FL");
 
   function setSort(k: SortKey) {
     if (sortKey === k) {
@@ -48,7 +51,8 @@ export default function DiscoveryView() {
 
   const toggleState = (code: string) => {
     setSelectedStates((prev) => (prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code]));
-    setSelectedRegion("all");
+    // Clear the FL region only when FL itself is being removed.
+    if (code === "FL" && selectedStates.includes("FL")) setSelectedRegion("all");
   };
   const clearStates = () => {
     setSelectedStates([]);
@@ -77,10 +81,13 @@ export default function DiscoveryView() {
     let result = allTransactions;
     if (selectedStates.length > 0) {
       const set = new Set(selectedStates);
-      result = result.filter((t) => set.has(t.stateCode));
-    }
-    if (isOnlyFL && selectedRegion !== "all") {
-      result = result.filter((t) => getRegion(t.agency, t.stateCode) === selectedRegion);
+      result = result.filter((t) => {
+        if (!set.has(t.stateCode)) return false;
+        if (t.stateCode === "FL" && includesFL && selectedRegion !== "all") {
+          return getRegion(t.agency, t.stateCode) === selectedRegion;
+        }
+        return true;
+      });
     }
     if (selectedYears.length > 0) {
       const set = new Set(selectedYears);
@@ -112,7 +119,7 @@ export default function DiscoveryView() {
       return sortDir === "asc" ? cmp : -cmp;
     });
     return sorted;
-  }, [selectedStates, selectedRegion, isOnlyFL, selectedYears, selectedKeywords, search, sortKey, sortDir]);
+  }, [selectedStates, selectedRegion, includesFL, selectedYears, selectedKeywords, search, sortKey, sortDir]);
 
   const totalSpend = filtered.reduce((s, t) => s + t.totalPrice, 0);
 
@@ -134,7 +141,7 @@ export default function DiscoveryView() {
           />
         </div>
 
-        {isOnlyFL && (
+        {includesFL && (
           <div className="mb-4 flex items-center flex-wrap gap-2.5">
             <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-on-surface-variant mr-2">
               Region
