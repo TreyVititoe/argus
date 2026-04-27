@@ -182,23 +182,37 @@ export default function AnalyticsView() {
 
       {drill && (
         <div
-          className="sticky top-2 z-30 mb-4 flex items-center justify-between gap-3 rounded-full border px-4 py-2 shadow-md backdrop-blur"
+          role="status"
+          className="fixed bottom-6 right-6 z-50 w-[240px] rounded-[12px] border shadow-xl"
           style={{
-            background: "var(--accent-bg)",
+            background: "var(--surface-container-lowest, var(--bg))",
             borderColor: "var(--accent)",
-            color: "var(--accent)",
           }}
         >
-          <span className="text-[12px] font-semibold truncate">
-            Drilling into <span className="font-bold">{drillLabel(drill)}</span> · {filteredTx.length.toLocaleString()} txns
-          </span>
+          <div className="px-3.5 pt-3 pb-2.5">
+            <div
+              className="text-[10px] font-bold uppercase tracking-[0.14em] mb-0.5"
+              style={{ color: "var(--accent)" }}
+            >
+              Filtered
+            </div>
+            <div className="text-[12px] font-semibold text-on-surface-variant capitalize">
+              {drill.kind === "priceRange" ? "Deal size" : drill.kind}
+            </div>
+            <div className="text-[14px] font-bold text-primary truncate" title={String(drill.value)}>
+              {drill.value}
+            </div>
+            <div className="text-[11px] text-on-surface-variant mt-0.5 tabular-nums">
+              {filteredTx.length.toLocaleString()} txns
+            </div>
+          </div>
           <button
             type="button"
             onClick={() => setDrill(null)}
-            className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-bold text-white transition-transform hover:-translate-y-0.5"
-            style={{ background: "var(--accent)" }}
+            className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2.5 text-[13px] font-bold text-white border-t transition-transform active:scale-[0.98]"
+            style={{ background: "var(--accent)", borderColor: "var(--accent)" }}
           >
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M3 7v6h6" />
               <path d="M21 17a9 9 0 0 0-15-6.7L3 13" />
             </svg>
