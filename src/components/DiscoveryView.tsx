@@ -85,8 +85,8 @@ export default function DiscoveryView() {
   return (
     <AppShell search={search} onSearchChange={setSearch}>
       <PageHeader
-        eyebrow="Transaction Explorer"
-        title="Discovery"
+        eyebrow="Customer Activity"
+        title="Customers"
         meta={`${filtered.length.toLocaleString()} transactions · ${formatCurrency(totalSpend)}`}
       />
 
