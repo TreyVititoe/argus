@@ -61,7 +61,7 @@ export default function LoginScreen() {
       setError(err.message || "That code didn't work. Try again.");
       return;
     }
-    router.replace("/dashboard");
+    router.replace("/(tabs)/dashboard");
   }
 
   return (
