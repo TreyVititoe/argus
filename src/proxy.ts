@@ -26,6 +26,7 @@ const PUBLIC_PATHS = new Set([
 const RESERVED_SUBROUTES = new Set([
   "discovery",
   "companies",
+  "vendors",
   "analytics",
   "settings",
   "help",
