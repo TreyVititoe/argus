@@ -4,11 +4,13 @@ import { useState, useMemo } from "react";
 import { useClearFilters } from "@/lib/use-clear-filters";
 import { Transaction, StateInfo } from "@/lib/types";
 import { formatCurrency, formatFullCurrency } from "@/lib/data-utils";
+import { getRegion, FL_REGIONS, Region } from "@/lib/regions";
 import rawData from "@/lib/data.json";
 import AppShell from "./AppShell";
 import StateTabs from "./StateTabs";
 import PageHeader from "./PageHeader";
 import ExportButton from "./ExportButton";
+import MultiSelectDropdown from "./MultiSelectDropdown";
 
 type SortKey = "agency" | "state" | "year" | "vendor" | "keyword" | "amount";
 type SortDir = "asc" | "desc";
@@ -19,11 +21,13 @@ const allStates = rawData.states as StateInfo[];
 export default function DiscoveryView() {
   const [search, setSearch] = useState("");
   const [selectedStates, setSelectedStates] = useState<string[]>([]);
-  const [yearFilter, setYearFilter] = useState<number | null>(null);
-  const [keywordFilter, setKeywordFilter] = useState<string>("");
+  const [selectedYears, setSelectedYears] = useState<number[]>([]);
+  const [selectedKeywords, setSelectedKeywords] = useState<string[]>([]);
+  const [selectedRegion, setSelectedRegion] = useState<Region | "all">("all");
   const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
   const [sortKey, setSortKey] = useState<SortKey>("amount");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
+  const isOnlyFL = selectedStates.length === 1 && selectedStates[0] === "FL";
 
   function setSort(k: SortKey) {
     if (sortKey === k) {
@@ -37,13 +41,25 @@ export default function DiscoveryView() {
   useClearFilters(() => {
     setSearch("");
     setSelectedStates([]);
-    setYearFilter(null);
-    setKeywordFilter("");
+    setSelectedYears([]);
+    setSelectedKeywords([]);
+    setSelectedRegion("all");
   });
 
-  const toggleState = (code: string) =>
+  const toggleState = (code: string) => {
     setSelectedStates((prev) => (prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code]));
-  const clearStates = () => setSelectedStates([]);
+    setSelectedRegion("all");
+  };
+  const clearStates = () => {
+    setSelectedStates([]);
+    setSelectedRegion("all");
+  };
+  const toggleYear = (v: string) => {
+    const y = Number(v);
+    setSelectedYears((prev) => (prev.includes(y) ? prev.filter((x) => x !== y) : [...prev, y]));
+  };
+  const toggleKeyword = (v: string) =>
+    setSelectedKeywords((prev) => (prev.includes(v) ? prev.filter((x) => x !== v) : [...prev, v]));
 
   const keywords = useMemo(() => {
     const s = new Set<string>();
@@ -63,11 +79,16 @@ export default function DiscoveryView() {
       const set = new Set(selectedStates);
       result = result.filter((t) => set.has(t.stateCode));
     }
-    if (yearFilter) {
-      result = result.filter((t) => t.year === yearFilter);
+    if (isOnlyFL && selectedRegion !== "all") {
+      result = result.filter((t) => getRegion(t.agency, t.stateCode) === selectedRegion);
     }
-    if (keywordFilter) {
-      result = result.filter((t) => t.keyword === keywordFilter);
+    if (selectedYears.length > 0) {
+      const set = new Set(selectedYears);
+      result = result.filter((t) => set.has(t.year));
+    }
+    if (selectedKeywords.length > 0) {
+      const set = new Set(selectedKeywords);
+      result = result.filter((t) => set.has(t.keyword));
     }
     if (search.trim()) {
       const q = search.toLowerCase();
@@ -91,7 +112,7 @@ export default function DiscoveryView() {
       return sortDir === "asc" ? cmp : -cmp;
     });
     return sorted;
-  }, [selectedStates, yearFilter, keywordFilter, search, sortKey, sortDir]);
+  }, [selectedStates, selectedRegion, isOnlyFL, selectedYears, selectedKeywords, search, sortKey, sortDir]);
 
   const totalSpend = filtered.reduce((s, t) => s + t.totalPrice, 0);
 
@@ -113,6 +134,30 @@ export default function DiscoveryView() {
           />
         </div>
 
+        {isOnlyFL && (
+          <div className="mb-4 flex items-center flex-wrap gap-2.5">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-on-surface-variant mr-2">
+              Region
+            </span>
+            {(["all", ...FL_REGIONS] as const).map((r) => {
+              const isActive = selectedRegion === r;
+              return (
+                <button
+                  key={r}
+                  onClick={() => setSelectedRegion(r as Region | "all")}
+                  className={`shrink-0 inline-flex items-center px-3.5 py-1.5 rounded-full text-[12px] font-medium border transition-colors ${
+                    isActive
+                      ? "bg-primary border-primary text-on-primary"
+                      : "bg-surface-container-lowest border-outline-variant text-primary hover:border-[oklch(0.88_0.007_85)]"
+                  }`}
+                >
+                  {r === "all" ? "All FL" : r}
+                </button>
+              );
+            })}
+          </div>
+        )}
+
         {/* Filters */}
         <div className="mb-4 bg-surface-container-lowest rounded-xl p-4 shadow-sm">
           <div className="flex flex-wrap items-center gap-3">
@@ -128,37 +173,27 @@ export default function DiscoveryView() {
               />
             </div>
 
-            <select
-              value={yearFilter || ""}
-              onChange={(e) => setYearFilter(e.target.value ? Number(e.target.value) : null)}
-              className="bg-surface-container-low rounded-xl px-3 py-2 text-sm outline-none"
-            >
-              <option value="">All years</option>
-              {years.map((y) => (
-                <option key={y} value={y}>
-                  {y}
-                </option>
-              ))}
-            </select>
+            <MultiSelectDropdown
+              label="Year"
+              options={years.map((y) => ({ value: String(y), label: String(y) }))}
+              selected={selectedYears.map(String)}
+              onToggle={toggleYear}
+              onClear={() => setSelectedYears([])}
+            />
 
-            <select
-              value={keywordFilter}
-              onChange={(e) => setKeywordFilter(e.target.value)}
-              className="bg-surface-container-low rounded-xl px-3 py-2 text-sm outline-none max-w-[200px]"
-            >
-              <option value="">All keywords</option>
-              {keywords.map((k) => (
-                <option key={k} value={k}>
-                  {k}
-                </option>
-              ))}
-            </select>
+            <MultiSelectDropdown
+              label="Keyword"
+              options={keywords.map((k) => ({ value: k, label: k }))}
+              selected={selectedKeywords}
+              onToggle={toggleKeyword}
+              onClear={() => setSelectedKeywords([])}
+            />
 
-            {(yearFilter || keywordFilter || search) && (
+            {(selectedYears.length > 0 || selectedKeywords.length > 0 || search) && (
               <button
                 onClick={() => {
-                  setYearFilter(null);
-                  setKeywordFilter("");
+                  setSelectedYears([]);
+                  setSelectedKeywords([]);
                   setSearch("");
                 }}
                 className="text-secondary font-bold text-xs hover:underline"
