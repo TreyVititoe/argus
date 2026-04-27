@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { PublicShell } from "@/components/PublicShell";
 
 export const metadata = {
@@ -81,21 +82,28 @@ export default function GlossaryPage() {
             cabinet functions, executive agencies, and local government each procure differently —
             and the source of an award line tells you which playbook fits.
           </p>
-          <div
+          <figure
             className="rounded-[14px] border p-4 bg-[var(--panel)]"
             style={{ borderColor: "var(--line)" }}
           >
-            <p className="text-[13px] mb-2" style={{ color: "var(--ink-3)" }}>
+            <p className="text-[13px] mb-3" style={{ color: "var(--ink-3)" }}>
               Example: Florida government structure (Office of Program Policy Analysis &amp;
               Government Accountability, 2024).
             </p>
-            <div
-              className="aspect-[16/12] rounded-[10px] flex items-center justify-center text-[13px]"
-              style={{ background: "var(--bg)", color: "var(--ink-3)", border: "1px dashed var(--line)" }}
-            >
-              Drop the chart at <code>/public/florida-gov-structure.png</code> and I&rsquo;ll wire it in.
+            <div className="rounded-[10px] overflow-hidden" style={{ background: "var(--bg)" }}>
+              <Image
+                src="/florida-gov-structure.jpg"
+                alt="Florida government org chart showing executive, judicial, legislative branches and how cabinet functions, executive agencies, and local government tie together."
+                width={3360}
+                height={2100}
+                sizes="(max-width: 920px) 100vw, 920px"
+                style={{ width: "100%", height: "auto", display: "block" }}
+              />
             </div>
-          </div>
+            <figcaption className="text-[12px] mt-3" style={{ color: "var(--ink-4)" }}>
+              Source: Florida Office of Program Policy Analysis &amp; Government Accountability, 2024.
+            </figcaption>
+          </figure>
         </div>
       </section>
     </PublicShell>
