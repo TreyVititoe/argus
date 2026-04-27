@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useClearFilters } from "@/lib/use-clear-filters";
 import { Transaction, StateInfo, CompanySummary } from "@/lib/types";
 import { summarizeByCompany, formatCurrency } from "@/lib/data-utils";
 import rawData from "@/lib/data.json";
@@ -53,6 +54,12 @@ export default function CompaniesView() {
 
   const totalSpend = companies.reduce((s, c) => s + c.totalSpend, 0);
   const maxSpend = companies[0]?.totalSpend || 1;
+
+  useClearFilters(() => {
+    setSearch("");
+    setSelectedState("ALL");
+    setExpanded(null);
+  });
 
   // For expanded company: compute top agencies that use it
   const getTopAgencies = (companyName: string) => {

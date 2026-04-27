@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import styles from "./shell.module.css";
 import ThemeToggle from "./ThemeToggle";
+import { dispatchClearFilters } from "@/lib/use-clear-filters";
 
 const DEFAULT_COMPANY = "cohesity";
 
@@ -108,9 +109,16 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
           })}
         </nav>
 
-        <Link href={hrefFor("discovery")} onClick={onClose} className={styles.newAnalysis}>
-          + New analysis
-        </Link>
+        <button
+          type="button"
+          onClick={() => {
+            dispatchClearFilters();
+            onClose();
+          }}
+          className={styles.newAnalysis}
+        >
+          Clear filters
+        </button>
 
         <div className={styles.sidebarFooter}>
           {FOOTER_ITEMS.map((item, i) => {

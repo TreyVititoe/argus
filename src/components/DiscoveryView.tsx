@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useClearFilters } from "@/lib/use-clear-filters";
 import { Transaction, StateInfo } from "@/lib/types";
 import { formatCurrency, formatFullCurrency } from "@/lib/data-utils";
 import rawData from "@/lib/data.json";
@@ -32,6 +33,13 @@ export default function DiscoveryView() {
       setSortDir(k === "amount" || k === "year" ? "desc" : "asc");
     }
   }
+
+  useClearFilters(() => {
+    setSearch("");
+    setSelectedState("ALL");
+    setYearFilter(null);
+    setKeywordFilter("");
+  });
 
   const keywords = useMemo(() => {
     const s = new Set<string>();

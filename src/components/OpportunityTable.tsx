@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, forwardRef, useMemo } from "react";
+import { useClearFilters } from "@/lib/use-clear-filters";
 import { AgencySummary, ContractStatus, Transaction } from "@/lib/types";
 import { formatCurrency, CURRENT_YEAR } from "@/lib/data-utils";
 import ExportButton from "./ExportButton";
@@ -104,6 +105,14 @@ const OpportunityTable = forwardRef<HTMLDivElement, OpportunityTableProps>(funct
       setSortDir(key === "name" || key === "type" ? "asc" : "desc");
     }
   }
+
+  useClearFilters(() => {
+    setExpanded(null);
+    setShowAll(false);
+    setQuery("");
+    setSortKey("default");
+    setSortDir("desc");
+  });
 
   const counts = useMemo(() => {
     const c = { all: agencies.length, expiring: 0, active: 0, dormant: 0 };
