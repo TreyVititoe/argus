@@ -80,7 +80,7 @@ npm run snapshot
    sticky Undo)
 3. Filter UI (state multi-select, year/keyword multi-select)
 4. Move data off the bundled snapshot to a Supabase table or API
-5. EAS Build + App Store Connect + Play Console setup
+5. App Store + Play Store submission — see [PUBLISHING.md](./PUBLISHING.md)
 6. Push notifications for renewal-window alerts
 
 ## Architecture notes
