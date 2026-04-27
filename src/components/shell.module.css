@@ -70,7 +70,7 @@
   color: var(--ink);
 }
 .navItem.active {
-  background: oklch(0.97 0.01 160);
+  background: var(--nav-active-bg);
   color: var(--ink);
   box-shadow: inset 0 0 0 1px var(--sidebar-border);
 }

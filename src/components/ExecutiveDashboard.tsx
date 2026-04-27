@@ -313,7 +313,7 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
                 onClick={() => setSelectedRegion(r as Region | "all")}
                 className={`shrink-0 inline-flex items-center gap-2.5 pl-4 pr-3.5 py-2 rounded-full text-[13px] font-medium border transition-colors ${
                   isActive
-                    ? "bg-primary border-primary text-white"
+                    ? "bg-primary border-primary text-on-primary"
                     : "bg-surface-container-lowest border-outline-variant text-primary hover:border-[oklch(0.88_0.007_85)]"
                 }`}
               >
@@ -321,7 +321,7 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
                 <span
                   className={`text-[12px] font-medium rounded-full px-2 py-0.5 ${
                     isActive
-                      ? "bg-white/12 text-white/80"
+                      ? "bg-on-primary/12 text-on-primary/80"
                       : "bg-surface-container text-on-surface-variant"
                   }`}
                 >

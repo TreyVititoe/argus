@@ -171,7 +171,7 @@ const OpportunityTable = forwardRef<HTMLDivElement, OpportunityTableProps>(funct
                 filter === f.mode
                   ? f.mode === "expiring"
                     ? "bg-on-tertiary-container text-white"
-                    : "bg-primary text-white"
+                    : "bg-primary text-on-primary"
                   : "bg-surface-container text-on-surface-variant hover:bg-surface-container-high"
               }`}
             >
