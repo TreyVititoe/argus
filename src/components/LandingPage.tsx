@@ -15,10 +15,116 @@ function BrandMarkSVG() {
   );
 }
 
+type TopoPath = { d: string; thick: boolean };
+
+function generateTopo(): TopoPath[] {
+  const W = 1600;
+  const H = 1000;
+  const cols = 50;
+  const rows = 32;
+  const cellW = W / cols;
+  const cellH = H / rows;
+
+  // Multi-octave smooth field. Re-randomized each mount via seed.
+  const seed = Math.random() * 100;
+  const noise = (x: number, y: number) =>
+    Math.sin(x * 0.08 + seed) * Math.cos(y * 0.06 + seed * 1.3) * 0.6 +
+    Math.sin(x * 0.18 - y * 0.12 + 2.1) * 0.35 +
+    Math.sin(x * 0.05 + y * 0.21 + 4.2) * 0.45 +
+    Math.cos((x + y) * 0.07 + 1.7) * 0.25;
+
+  const grid: number[][] = [];
+  for (let r = 0; r <= rows; r++) {
+    const row: number[] = [];
+    for (let c = 0; c <= cols; c++) row.push(noise(c, r));
+    grid.push(row);
+  }
+
+  const thresholds = [-1.2, -0.8, -0.4, 0, 0.4, 0.8, 1.2];
+  const out: TopoPath[] = [];
+
+  for (let i = 0; i < thresholds.length; i++) {
+    const t = thresholds[i];
+    const segs: string[] = [];
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const a = grid[r][c];
+        const b = grid[r][c + 1];
+        const c2 = grid[r + 1][c + 1];
+        const d = grid[r + 1][c];
+
+        let idx = 0;
+        if (a > t) idx |= 1;
+        if (b > t) idx |= 2;
+        if (c2 > t) idx |= 4;
+        if (d > t) idx |= 8;
+
+        if (idx === 0 || idx === 15) continue;
+
+        const x = c * cellW;
+        const y = r * cellH;
+        const lerp = (v1: number, v2: number) =>
+          Math.max(0, Math.min(1, (t - v1) / (v2 - v1)));
+        const N: [number, number] = [x + lerp(a, b) * cellW, y];
+        const E: [number, number] = [x + cellW, y + lerp(b, c2) * cellH];
+        const S: [number, number] = [x + lerp(d, c2) * cellW, y + cellH];
+        const Wp: [number, number] = [x, y + lerp(a, d) * cellH];
+
+        const fmt = (p: [number, number]) => `${p[0].toFixed(1)} ${p[1].toFixed(1)}`;
+        const seg = (p1: [number, number], p2: [number, number]) =>
+          segs.push(`M${fmt(p1)}L${fmt(p2)}`);
+
+        switch (idx) {
+          case 1:
+          case 14:
+            seg(Wp, S);
+            break;
+          case 2:
+          case 13:
+            seg(S, E);
+            break;
+          case 3:
+          case 12:
+            seg(Wp, E);
+            break;
+          case 4:
+          case 11:
+            seg(N, E);
+            break;
+          case 6:
+          case 9:
+            seg(N, S);
+            break;
+          case 7:
+          case 8:
+            seg(Wp, N);
+            break;
+          case 5:
+            seg(Wp, N);
+            seg(S, E);
+            break;
+          case 10:
+            seg(Wp, S);
+            seg(N, E);
+            break;
+        }
+      }
+    }
+    out.push({ d: segs.join(" "), thick: i % 3 === 0 });
+  }
+
+  return out;
+}
+
 export default function LandingPage() {
   const [scrolled, setScrolled] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [topoPaths, setTopoPaths] = useState<TopoPath[]>([]);
   const btnRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    setTopoPaths(generateTopo());
+  }, []);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -44,6 +150,18 @@ export default function LandingPage() {
 
   return (
     <div className={styles.page}>
+      <div className={styles.topoBg} aria-hidden="true">
+        <svg viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice">
+          {topoPaths.map((p, i) => (
+            <path
+              key={i}
+              d={p.d}
+              className={p.thick ? styles.topoPathThick : styles.topoPath}
+            />
+          ))}
+        </svg>
+      </div>
+
       {/* NAV */}
       <nav className={`${styles.nav} ${scrolled ? styles.navScrolled : ""}`}>
         <div className={styles.navInner}>
