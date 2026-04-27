@@ -70,6 +70,7 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
   const [statesOpen, setStatesOpen] = useState(false);
   const [selectedRegion, setSelectedRegion] = useState<Region | "all">("all");
   const [opportunityFilter, setOpportunityFilter] = useState<"all" | "expiring" | "active" | "dormant">("all");
+  const [hideMicrosoft, setHideMicrosoft] = useState(false);
   const opportunitiesRef = useRef<HTMLDivElement>(null);
 
   const handleViewAllOpportunities = () => {
@@ -88,10 +89,14 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
     setStatesOpen(false);
     setSelectedRegion("all");
     setOpportunityFilter("all");
+    setHideMicrosoft(false);
   });
 
   const filteredTransactions = useMemo(() => {
     let base = allTransactions;
+    if (hideMicrosoft) {
+      base = base.filter((t) => t.competitor !== "Microsoft" && t.company !== "Microsoft");
+    }
     if (yearMin !== null) base = base.filter((t) => t.year >= yearMin);
     if (yearMax !== null) base = base.filter((t) => t.year <= yearMax);
     if (selectedState !== "ALL") {
@@ -108,7 +113,7 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
         t.company.toLowerCase().includes(q) ||
         t.keyword.toLowerCase().includes(q)
     );
-  }, [search, yearMin, yearMax, selectedState, selectedRegion]);
+  }, [search, yearMin, yearMax, selectedState, selectedRegion, hideMicrosoft]);
 
   const handleStateChange = (code: string) => {
     setSelectedState(code);
@@ -346,6 +351,26 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
       )}
         </div>
         <div className="col-span-12 lg:col-span-4 flex flex-col gap-1">
+          <div className="flex items-center justify-end">
+            <button
+              type="button"
+              onClick={() => setHideMicrosoft((v) => !v)}
+              aria-pressed={hideMicrosoft}
+              title={hideMicrosoft ? "Including Microsoft data" : "Excluding Microsoft data"}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[11px] font-semibold transition-colors"
+              style={{
+                borderColor: hideMicrosoft ? "var(--accent)" : "var(--line)",
+                background: hideMicrosoft ? "var(--accent-bg)" : "transparent",
+                color: hideMicrosoft ? "var(--accent)" : "var(--ink-3)",
+              }}
+            >
+              <span
+                className="inline-block w-1.5 h-1.5 rounded-full"
+                style={{ background: hideMicrosoft ? "var(--accent)" : "var(--ink-4)" }}
+              />
+              {hideMicrosoft ? "No Microsoft View · ON" : "No Microsoft View"}
+            </button>
+          </div>
           <TenantLogo company={company} />
           <StateMap states={allStates} selectedState={selectedState} selectedRegion={selectedRegion} />
         </div>
