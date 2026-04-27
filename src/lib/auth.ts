@@ -10,6 +10,7 @@ export type Session = {
 // Canonical mapping of allowed email domains to tenant slugs.
 export const DOMAIN_TO_TENANT: Record<string, string> = {
   "cohesity.com": "cohesity",
+  "treyvititoe.com": "cohesity",
 };
 
 export function tenantForEmail(email: string): string | null {
