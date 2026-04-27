@@ -18,7 +18,7 @@ const allStates = rawData.states as StateInfo[];
 
 export default function DiscoveryView() {
   const [search, setSearch] = useState("");
-  const [selectedState, setSelectedState] = useState<string>("ALL");
+  const [selectedStates, setSelectedStates] = useState<string[]>([]);
   const [yearFilter, setYearFilter] = useState<number | null>(null);
   const [keywordFilter, setKeywordFilter] = useState<string>("");
   const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
@@ -36,10 +36,14 @@ export default function DiscoveryView() {
 
   useClearFilters(() => {
     setSearch("");
-    setSelectedState("ALL");
+    setSelectedStates([]);
     setYearFilter(null);
     setKeywordFilter("");
   });
+
+  const toggleState = (code: string) =>
+    setSelectedStates((prev) => (prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code]));
+  const clearStates = () => setSelectedStates([]);
 
   const keywords = useMemo(() => {
     const s = new Set<string>();
@@ -55,8 +59,9 @@ export default function DiscoveryView() {
 
   const filtered = useMemo(() => {
     let result = allTransactions;
-    if (selectedState !== "ALL") {
-      result = result.filter((t) => t.stateCode === selectedState);
+    if (selectedStates.length > 0) {
+      const set = new Set(selectedStates);
+      result = result.filter((t) => set.has(t.stateCode));
     }
     if (yearFilter) {
       result = result.filter((t) => t.year === yearFilter);
@@ -86,7 +91,7 @@ export default function DiscoveryView() {
       return sortDir === "asc" ? cmp : -cmp;
     });
     return sorted;
-  }, [selectedState, yearFilter, keywordFilter, search, sortKey, sortDir]);
+  }, [selectedStates, yearFilter, keywordFilter, search, sortKey, sortDir]);
 
   const totalSpend = filtered.reduce((s, t) => s + t.totalPrice, 0);
 
@@ -101,8 +106,9 @@ export default function DiscoveryView() {
       <div className="mb-4">
           <StateTabs
             states={allStates}
-            selected={selectedState}
-            onSelect={setSelectedState}
+            selected={selectedStates}
+            onToggle={toggleState}
+            onClear={clearStates}
             total={allTransactions.length}
           />
         </div>

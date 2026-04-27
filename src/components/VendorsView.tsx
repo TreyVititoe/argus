@@ -99,13 +99,18 @@ function MiniSparkline({ data }: { data: Record<number, number> }) {
 
 export default function VendorsView() {
   const [search, setSearch] = useState("");
-  const [selectedState, setSelectedState] = useState<string>("ALL");
+  const [selectedStates, setSelectedStates] = useState<string[]>([]);
   const [expanded, setExpanded] = useState<string | null>(null);
 
   const filteredTx = useMemo(() => {
-    if (selectedState === "ALL") return allTransactions;
-    return allTransactions.filter((t) => t.stateCode === selectedState);
-  }, [selectedState]);
+    if (selectedStates.length === 0) return allTransactions;
+    const set = new Set(selectedStates);
+    return allTransactions.filter((t) => set.has(t.stateCode));
+  }, [selectedStates]);
+
+  const toggleState = (code: string) =>
+    setSelectedStates((prev) => (prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code]));
+  const clearStates = () => setSelectedStates([]);
 
   const vendors = useMemo(() => {
     const all = summarizeVendors(filteredTx);
@@ -119,7 +124,7 @@ export default function VendorsView() {
 
   useClearFilters(() => {
     setSearch("");
-    setSelectedState("ALL");
+    setSelectedStates([]);
     setExpanded(null);
   });
 
@@ -134,8 +139,9 @@ export default function VendorsView() {
       <div className="mb-6">
         <StateTabs
           states={allStates}
-          selected={selectedState}
-          onSelect={setSelectedState}
+          selected={selectedStates}
+          onToggle={toggleState}
+          onClear={clearStates}
           total={allTransactions.length}
         />
       </div>

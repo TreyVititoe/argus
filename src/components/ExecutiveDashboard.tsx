@@ -66,9 +66,11 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
   const [yearMin, setYearMin] = useState<number | null>(null);
   const [yearMax, setYearMax] = useState<number | null>(null);
   const [yearsOpen, setYearsOpen] = useState(false);
-  const [selectedState, setSelectedState] = useState<string>("ALL");
+  const [selectedStates, setSelectedStates] = useState<string[]>([]);
   const [statesOpen, setStatesOpen] = useState(false);
   const [selectedRegion, setSelectedRegion] = useState<Region | "all">("all");
+  // FL region filter only applies when FL is the *only* selected state.
+  const isOnlyFL = selectedStates.length === 1 && selectedStates[0] === "FL";
   const [opportunityFilter, setOpportunityFilter] = useState<"all" | "expiring" | "active" | "dormant">("all");
   const [hideMicrosoft, setHideMicrosoft] = useState(false);
   const opportunitiesRef = useRef<HTMLDivElement>(null);
@@ -85,7 +87,7 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
     setYearMin(null);
     setYearMax(null);
     setYearsOpen(false);
-    setSelectedState("ALL");
+    setSelectedStates([]);
     setStatesOpen(false);
     setSelectedRegion("all");
     setOpportunityFilter("all");
@@ -99,10 +101,11 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
     }
     if (yearMin !== null) base = base.filter((t) => t.year >= yearMin);
     if (yearMax !== null) base = base.filter((t) => t.year <= yearMax);
-    if (selectedState !== "ALL") {
-      base = base.filter((t) => t.stateCode === selectedState);
+    if (selectedStates.length > 0) {
+      const set = new Set(selectedStates);
+      base = base.filter((t) => set.has(t.stateCode));
     }
-    if (selectedState === "FL" && selectedRegion !== "all") {
+    if (isOnlyFL && selectedRegion !== "all") {
       base = base.filter((t) => getRegion(t.agency, t.stateCode) === selectedRegion);
     }
     if (!search.trim()) return base;
@@ -113,15 +116,21 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
         t.company.toLowerCase().includes(q) ||
         t.keyword.toLowerCase().includes(q)
     );
-  }, [search, yearMin, yearMax, selectedState, selectedRegion, hideMicrosoft]);
+  }, [search, yearMin, yearMax, selectedStates, selectedRegion, hideMicrosoft, isOnlyFL]);
 
-  const handleStateChange = (code: string) => {
-    setSelectedState(code);
+  const handleStateToggle = (code: string) => {
+    setSelectedStates((prev) =>
+      prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code]
+    );
+    setSelectedRegion("all");
+  };
+  const handleClearStates = () => {
+    setSelectedStates([]);
     setSelectedRegion("all");
   };
 
   const flRegionCounts = useMemo(() => {
-    if (selectedState !== "FL") return null;
+    if (!isOnlyFL) return null;
     const counts: Record<string, number> = { all: 0 };
     for (const r of FL_REGIONS) counts[r] = 0;
     const flTx = allTransactions.filter((t) => t.stateCode === "FL");
@@ -131,7 +140,7 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
       if (r) counts[r] = (counts[r] || 0) + 1;
     }
     return counts;
-  }, [selectedState]);
+  }, [isOnlyFL]);
 
   const allAgencies = useMemo(() => summarizeByAgency(filteredTransactions), [filteredTransactions]);
   const allCompanies = useMemo(() => summarizeByCompany(filteredTransactions), [filteredTransactions]);
@@ -174,9 +183,11 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
             eyebrow={company ? `Market Overview · ${formatCompany(company)}` : "Market Overview"}
             title="Executive dashboard"
             meta={
-              selectedState === "ALL"
+              selectedStates.length === 0
                 ? `${allStates.length} states · ${allTransactions.length.toLocaleString()} transactions`
-                : allStates.find((s) => s.code === selectedState)?.name || selectedState
+                : selectedStates.length === 1
+                ? allStates.find((s) => s.code === selectedStates[0])?.name || selectedStates[0]
+                : `${selectedStates.length} states selected`
             }
           />
 
@@ -275,9 +286,11 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
             States
           </span>
           <span>
-            {selectedState === "ALL"
+            {selectedStates.length === 0
               ? "All states"
-              : allStates.find((s) => s.code === selectedState)?.name || selectedState}
+              : selectedStates.length === 1
+              ? allStates.find((s) => s.code === selectedStates[0])?.name || selectedStates[0]
+              : `${selectedStates.length} states selected`}
           </span>
           <span className="text-on-surface-variant">
             <svg
@@ -295,10 +308,10 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
             </svg>
           </span>
         </button>
-        {selectedState !== "ALL" && (
+        {selectedStates.length > 0 && (
           <button
             type="button"
-            onClick={() => handleStateChange("ALL")}
+            onClick={handleClearStates}
             className="text-[12px] font-medium text-[var(--accent)] hover:underline ml-1"
           >
             Clear
@@ -310,14 +323,15 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
         <div className="rounded-[14px] border border-outline-variant bg-surface-container-lowest px-4 py-3">
           <StateTabs
             states={allStates}
-            selected={selectedState}
-            onSelect={handleStateChange}
+            selected={selectedStates}
+            onToggle={handleStateToggle}
+            onClear={handleClearStates}
             total={allTransactions.length}
           />
         </div>
       )}
 
-      {selectedState === "FL" && flRegionCounts && (
+      {isOnlyFL && flRegionCounts && (
         <div className="flex items-center flex-wrap gap-2.5">
           <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-on-surface-variant mr-2">
             Region
@@ -372,7 +386,7 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
             </button>
           </div>
           <TenantLogo company={company} />
-          <StateMap states={allStates} selectedState={selectedState} selectedRegion={selectedRegion} />
+          <StateMap states={allStates} selectedStates={selectedStates} selectedRegion={selectedRegion} />
         </div>
       </div>
 

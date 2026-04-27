@@ -6,7 +6,9 @@ import { Region } from "@/lib/regions";
 
 interface StateMapProps {
   states: StateInfo[];
-  selectedState: string;
+  // Empty array = no selection (placeholder shown). Single = map shown.
+  // Multiple = "N states selected" hint, since we only have art for one at a time.
+  selectedStates: string[];
   selectedRegion: Region | "all";
 }
 
@@ -37,19 +39,36 @@ function imageFor(selectedState: string, selectedRegion: Region | "all"): string
   return STATE_IMAGE[selectedState] ?? null;
 }
 
-export default function StateMap({ states, selectedState, selectedRegion }: StateMapProps) {
-  const info = selectedState !== "ALL" ? states.find((s) => s.code === selectedState) : null;
+export default function StateMap({ states, selectedStates, selectedRegion }: StateMapProps) {
+  const singleCode = selectedStates.length === 1 ? selectedStates[0] : null;
+  const info = singleCode ? states.find((s) => s.code === singleCode) : null;
   const hasSelection = !!info;
-  const src = imageFor(selectedState, selectedRegion);
+  const src = singleCode ? imageFor(singleCode, selectedRegion) : null;
+  const totalCount = selectedStates.length > 1
+    ? selectedStates.reduce((sum, c) => sum + (states.find((s) => s.code === c)?.transactionCount || 0), 0)
+    : 0;
 
   return (
     <div className="bg-surface-container-lowest border border-outline-variant rounded-[14px] p-5 h-full min-h-[180px] flex items-center justify-center">
-      {!hasSelection ? (
+      {selectedStates.length === 0 ? (
         <div
           className="text-[13px] font-medium tracking-[0.02em]"
           style={{ color: "var(--accent)", opacity: 0.7 }}
         >
           Choose a state
+        </div>
+      ) : !hasSelection ? (
+        <div className="text-center">
+          <div className="font-bold leading-none tracking-[-0.02em]" style={{ fontSize: "44px", color: "var(--accent)" }}>
+            {selectedStates.length}
+          </div>
+          <div className="mt-2 text-[13px] font-semibold text-primary">states selected</div>
+          <div className="text-[12px] text-on-surface-variant tabular-nums">
+            {totalCount.toLocaleString()} transactions
+          </div>
+          <div className="mt-2 text-[11px] text-on-surface-variant truncate max-w-[180px] mx-auto">
+            {selectedStates.join(" · ")}
+          </div>
         </div>
       ) : (
         <div className="flex items-center justify-center gap-4 w-full">
@@ -77,7 +96,7 @@ export default function StateMap({ states, selectedState, selectedRegion }: Stat
             <div className="text-[12px] text-on-surface-variant tabular-nums">
               {info.transactionCount.toLocaleString()} transactions
             </div>
-            {selectedState === "FL" && selectedRegion !== "all" && (
+            {singleCode === "FL" && selectedRegion !== "all" && (
               <div
                 className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium"
                 style={{ background: "var(--accent-bg)", color: "var(--accent)" }}
