@@ -19,6 +19,7 @@ const NAV_ITEMS: { label: string; sub: string | null }[] = [
 
 const FOOTER_ITEMS: { label: string; sub: string }[] = [
   { label: "Settings", sub: "settings" },
+  { label: "Feedback", sub: "feedback" },
   { label: "Help", sub: "help" },
 ];
 

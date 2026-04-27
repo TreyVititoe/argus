@@ -31,6 +31,7 @@ const RESERVED_SUBROUTES = new Set([
   "settings",
   "help",
   "glossary",
+  "feedback",
 ]);
 
 export async function proxy(req: NextRequest) {
