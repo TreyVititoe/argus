@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./shell.module.css";
 import { useSession } from "./SessionProvider";
+import { getSupabaseBrowser } from "@/lib/supabase/client";
 
 export default function AvatarMenu() {
   const user = useSession();
@@ -31,7 +32,9 @@ export default function AvatarMenu() {
   }, [open]);
 
   async function onSignOut() {
-    await fetch("/api/logout", { method: "POST" }).catch(() => {});
+    try {
+      await getSupabaseBrowser().auth.signOut();
+    } catch {}
     setOpen(false);
     router.push("/");
     router.refresh();

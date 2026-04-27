@@ -5,26 +5,32 @@ decision before they can ship. Everything here is wired in code or stubbed
 behind an env var; the action is on you to provision the account and paste
 the value into Vercel.
 
-## 1. Real auth provider (Clerk recommended)
+## 1. Supabase Auth (integrated, needs env vars)
 
-**Status:** Argus runs on a custom signed-cookie + email-domain check today.
-Real auth (signup flow, password reset, MFA, SSO) lives in front of that.
+**Status:** Argus uses Supabase Auth via magic-link sign-in. The integration
+is in code; the project needs a Supabase backend behind it.
 
-**Recommended path: Clerk**
-1. Create a Clerk app at https://clerk.com
-2. In the Clerk dashboard:
-   - Enable Email + password
-   - Restrict signups to allowed domains (cohesity.com, future tenants)
-   - Add a webhook → `/api/clerk/webhook` (we'll build this when you're ready)
-3. Add to Vercel env vars (Production + Preview):
-   - `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`
-   - `CLERK_SECRET_KEY`
-4. Tell me to migrate `/login` and the middleware to Clerk. Estimate: 90 min
-   of integration work.
+**Setup (one-time):**
+1. Create a project at https://supabase.com (free tier).
+2. **Settings → API**: copy the Project URL and `anon` public key.
+3. **Authentication → URL Configuration**:
+   - **Site URL**: `https://www.argus.bz`
+   - **Redirect URLs**: add `https://www.argus.bz/auth/callback` and
+     `http://localhost:3000/auth/callback`. Add Vercel preview wildcards if you
+     want preview deployments to log in too.
+4. **Authentication → Email Templates → Magic Link**: tweak subject/body to
+   match Argus voice (optional).
+5. Add to Vercel env vars (Production + Preview):
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+6. Drop the same two into local `.env.local` for dev.
 
-**Alternative paths:**
-- **Supabase Auth** — bundled with the Postgres DB you'll likely want anyway.
-- **Auth.js (NextAuth)** — fully self-hosted, no third-party dashboard.
+The old `AUTH_SECRET` env var is now unused — safe to delete from Vercel.
+
+**Onboarding a new tenant (e.g., CrowdStrike):**
+- Add `"crowdstrike.com": "crowdstrike"` to `DOMAIN_TO_TENANT` in
+  `src/lib/auth.ts`. That alone gates the login. Tenant data lookup is in
+  `src/lib/tenants.ts`.
 
 ## 2. Counsel review of legal pages
 
