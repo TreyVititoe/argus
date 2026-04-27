@@ -1,10 +1,8 @@
-import Image from "next/image";
-import { PublicShell } from "@/components/PublicShell";
+"use client";
 
-export const metadata = {
-  title: "Glossary — Argus",
-  description: "Public-sector procurement terms, in plain language.",
-};
+import Image from "next/image";
+import AppShell from "./AppShell";
+import PageHeader from "./PageHeader";
 
 const TERMS: { t: string; d: string }[] = [
   { t: "Agency", d: "A government body that buys goods or services. Argus tracks federal, state, county, municipal, and special-district agencies (e.g., water management districts, school boards)." },
@@ -29,75 +27,65 @@ const TERMS: { t: string; d: string }[] = [
   { t: "Win rate", d: "The percentage of pursued opportunities a vendor wins. In Argus, derived from the share of agencies in your filter set that have an active contract with the named vendor." },
 ];
 
-export default function GlossaryPage() {
+export default function GlossaryView() {
   return (
-    <PublicShell>
-      <section className="max-w-[920px] mx-auto px-8 md:px-12 py-12 md:py-20">
-        <div
-          className="text-[11px] font-semibold uppercase tracking-[0.16em] mb-4"
-          style={{ color: "var(--accent)" }}
-        >
-          Glossary
-        </div>
-        <h1
-          className="font-bold leading-[1.02] tracking-[-0.025em] mb-6"
-          style={{ fontSize: "clamp(40px, 6.5vw, 60px)" }}
-        >
-          Procurement, in plain language.
-        </h1>
-        <p className="text-[17px] leading-relaxed mb-10 max-w-[680px]" style={{ color: "var(--ink-2)" }}>
-          Public-sector buying has its own vocabulary. If you&rsquo;re new to SLED sales, start
-          here. If you aren&rsquo;t, send this to the rep you&rsquo;re onboarding.
+    <AppShell>
+      <PageHeader
+        eyebrow="Reference"
+        title="Glossary"
+        meta="Procurement, in plain language."
+      />
+
+      <figure
+        className="rounded-[14px] border bg-surface-container-lowest p-4 mb-8"
+        style={{ borderColor: "var(--line)" }}
+      >
+        <p className="text-[13px] mb-3" style={{ color: "var(--ink-3)" }}>
+          How a state government is structured — Florida (Office of Program Policy Analysis &amp;
+          Government Accountability, 2024).
         </p>
+        <div className="rounded-[10px] overflow-hidden" style={{ background: "var(--bg)" }}>
+          <Image
+            src="/florida-gov-chart.jpg"
+            alt="Florida government org chart showing executive, judicial, legislative branches and how cabinet functions, executive agencies, and local government tie together."
+            width={3360}
+            height={2100}
+            sizes="100vw"
+            style={{ width: "100%", height: "auto", display: "block" }}
+          />
+        </div>
+        <figcaption className="text-[12px] mt-3" style={{ color: "var(--ink-4)" }}>
+          Knowing the buying layer matters when you&rsquo;re reading an award. State agencies,
+          cabinet functions, executive agencies, and local government each procure differently —
+          and the source of an award line tells you which playbook fits.
+        </figcaption>
+      </figure>
 
-        <figure
-          className="rounded-[14px] border p-4 bg-[var(--panel)] mb-12"
-          style={{ borderColor: "var(--line)" }}
-        >
-          <p className="text-[13px] mb-3" style={{ color: "var(--ink-3)" }}>
-            How a state government is structured — Florida (Office of Program Policy Analysis &amp;
-            Government Accountability, 2024).
-          </p>
-          <div className="rounded-[10px] overflow-hidden" style={{ background: "var(--bg)" }}>
-            <Image
-              src="/florida-gov-chart.jpg"
-              alt="Florida government org chart showing executive, judicial, legislative branches and how cabinet functions, executive agencies, and local government tie together."
-              width={3360}
-              height={2100}
-              sizes="(max-width: 920px) 100vw, 920px"
-              style={{ width: "100%", height: "auto", display: "block" }}
-            />
-          </div>
-          <figcaption className="text-[12px] mt-3" style={{ color: "var(--ink-4)" }}>
-            Knowing the buying layer matters when you&rsquo;re reading an award. State agencies,
-            cabinet functions, executive agencies, and local government each procure differently —
-            and the source of an award line tells you which playbook fits.
-          </figcaption>
-        </figure>
-
-        <dl
-          className="rounded-[14px] border bg-[var(--panel)] divide-y"
-          style={{ borderColor: "var(--line)" }}
-        >
-          {TERMS.map((row) => (
-            <div
-              key={row.t}
-              className="grid grid-cols-12 gap-4 px-6 md:px-8 py-5"
-              style={{ borderColor: "var(--line)" }}
+      <dl
+        className="rounded-[14px] border bg-surface-container-lowest divide-y"
+        style={{ borderColor: "var(--line)" }}
+      >
+        {TERMS.map((row) => (
+          <div
+            key={row.t}
+            className="grid grid-cols-12 gap-4 px-6 md:px-8 py-5"
+            style={{ borderColor: "var(--line)" }}
+          >
+            <dt
+              className="col-span-12 md:col-span-3 font-semibold text-[15px] tracking-[-0.01em]"
+              style={{ color: "var(--ink)" }}
             >
-              <dt
-                className="col-span-12 md:col-span-3 font-semibold text-[15px] tracking-[-0.01em]"
-                style={{ color: "var(--ink)" }}
-              >
-                {row.t}
-              </dt>
-              <dd className="col-span-12 md:col-span-9 text-[14px] leading-[1.65]" style={{ color: "var(--ink-2)" }}>
-                {row.d}
-              </dd>
-            </div>
-          ))}
-        </dl>
-      </section>
-    </PublicShell>
+              {row.t}
+            </dt>
+            <dd
+              className="col-span-12 md:col-span-9 text-[14px] leading-[1.65]"
+              style={{ color: "var(--ink-2)" }}
+            >
+              {row.d}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </AppShell>
   );
 }

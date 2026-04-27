@@ -15,7 +15,6 @@ const PUBLIC_PATHS = new Set([
   "/sla",
   "/status",
   "/faq",
-  "/glossary",
   "/why-argus",
   "/for-sales-leaders",
   "/for-reps",
@@ -29,6 +28,7 @@ const RESERVED_SUBROUTES = new Set([
   "analytics",
   "settings",
   "help",
+  "glossary",
 ]);
 
 export async function proxy(req: NextRequest) {

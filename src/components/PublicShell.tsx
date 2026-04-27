@@ -17,7 +17,6 @@ const FOOTER_COLS: { heading: string; links: { label: string; href: string; exte
     heading: "Resources",
     links: [
       { label: "FAQ", href: "/faq" },
-      { label: "Glossary", href: "/glossary" },
       { label: "Status", href: "/status" },
       { label: "About", href: "/about" },
     ],
