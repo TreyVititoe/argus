@@ -404,27 +404,37 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
       )}
         </div>
         <div className="col-span-12 lg:col-span-4 flex flex-col gap-1">
-          <div className="flex items-center justify-end">
+          <div className="flex items-center justify-end gap-3 flex-wrap">
             <button
               type="button"
               onClick={() => setHideMicrosoft((v) => !v)}
               aria-pressed={hideMicrosoft}
-              title={hideMicrosoft ? "Including Microsoft data" : "Excluding Microsoft data"}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[11px] font-semibold transition-colors"
+              title={hideMicrosoft ? "Click to include Microsoft data" : "Click to hide Microsoft data"}
+              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-full border text-[12px] font-semibold cursor-pointer select-none shadow-sm active:scale-[0.97] hover:shadow-md shrink-0"
               style={{
                 borderColor: hideMicrosoft ? "var(--accent)" : "var(--line)",
-                background: hideMicrosoft ? "var(--accent-bg)" : "transparent",
-                color: hideMicrosoft ? "var(--accent)" : "var(--ink-3)",
+                background: hideMicrosoft ? "var(--accent)" : "var(--surface-container-lowest, var(--bg))",
+                color: hideMicrosoft ? "#FFFFFF" : "var(--ink)",
+                transition: "background-color 80ms ease-out, border-color 80ms ease-out, color 80ms ease-out, transform 80ms ease-out",
               }}
             >
               <span
-                className="inline-block w-1.5 h-1.5 rounded-full"
-                style={{ background: hideMicrosoft ? "var(--accent)" : "var(--ink-4)" }}
+                className="inline-block w-2 h-2 rounded-full"
+                style={{ background: hideMicrosoft ? "#FFFFFF" : "var(--ink-4)" }}
               />
-              {hideMicrosoft ? "No Microsoft View · ON" : "No Microsoft View"}
+              <span>{hideMicrosoft ? "Microsoft hidden" : "No Microsoft view"}</span>
+              <span
+                className="ml-0.5 inline-flex items-center justify-center px-1.5 py-0.5 rounded-full text-[10px] font-bold"
+                style={{
+                  background: hideMicrosoft ? "rgba(255,255,255,0.22)" : "var(--surface-container)",
+                  color: hideMicrosoft ? "#FFFFFF" : "var(--ink-3)",
+                }}
+              >
+                {hideMicrosoft ? "ON" : "OFF"}
+              </span>
             </button>
+            <TenantLogo company={company} />
           </div>
-          <TenantLogo company={company} />
           <StateMap states={allStates} selectedStates={selectedStates} selectedRegion={selectedRegion} />
         </div>
       </div>

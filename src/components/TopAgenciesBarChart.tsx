@@ -84,7 +84,7 @@ export default function TopAgenciesBarChart({ agencies, onAgencyClick }: TopAgen
             </defs>
             <XAxis
               type="number"
-              stroke="oklch(0.55 0.006 85)"
+              stroke="var(--ink-3)"
               fontSize={11}
               axisLine={false}
               tickLine={false}
@@ -93,12 +93,12 @@ export default function TopAgenciesBarChart({ agencies, onAgencyClick }: TopAgen
             <YAxis
               type="category"
               dataKey="name"
-              stroke="oklch(0.36 0.008 85)"
+              stroke="var(--ink-2)"
               fontSize={11}
               axisLine={false}
               tickLine={false}
               width={160}
-              tick={{ fontWeight: 500 }}
+              tick={{ fontWeight: 500, fill: "var(--ink-2)" }}
             />
             <Tooltip
               cursor={{ fill: "oklch(0.95 0.02 160 / 0.4)" }}
