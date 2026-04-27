@@ -1,7 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { formatCurrency } from "@/lib/data-utils";
+import ChartExpandModal from "./ChartExpandModal";
 
 interface ShareDonutRow {
   name: string;
@@ -16,6 +18,7 @@ interface ShareDonutProps {
 }
 
 export default function ShareDonut({ eyebrow, title, rows, colors }: ShareDonutProps) {
+  const [expanded, setExpanded] = useState(false);
   const sorted = [...rows].sort((a, b) => b.value - a.value);
   const top = sorted.slice(0, 5);
   const otherSum = sorted.slice(5).reduce((s, r) => s + r.value, 0);
@@ -24,14 +27,37 @@ export default function ShareDonut({ eyebrow, title, rows, colors }: ShareDonutP
   const leader = data[0];
 
   return (
-    <div className="col-span-12 lg:col-span-6 bg-surface-container-lowest border border-outline-variant rounded-[14px] p-5 md:p-6">
-      <div className="mb-4">
-        <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-on-surface-variant mb-0.5">
-          {eyebrow}
+    <div
+      onClick={() => setExpanded(true)}
+      className="col-span-12 lg:col-span-6 bg-surface-container-lowest border border-outline-variant rounded-[14px] p-5 md:p-6 cursor-pointer transition-colors hover:border-[oklch(0.88_0.007_85)]"
+      title="Click to see every entry"
+    >
+      <div className="mb-4 flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-on-surface-variant mb-0.5">
+            {eyebrow}
+          </div>
+          <div className="font-headline font-semibold text-[22px] leading-tight tracking-[-0.015em] text-primary">
+            {title}
+          </div>
         </div>
-        <div className="font-headline font-semibold text-[22px] leading-tight tracking-[-0.015em] text-primary">
-          {title}
-        </div>
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            setExpanded(true);
+          }}
+          aria-label="Expand all entries"
+          className="shrink-0 inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-[0.1em] text-on-surface-variant hover:text-primary px-2 py-1 rounded-full"
+        >
+          Expand
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M15 3h6v6" />
+            <path d="M9 21H3v-6" />
+            <path d="M21 3l-7 7" />
+            <path d="M3 21l7-7" />
+          </svg>
+        </button>
       </div>
 
       <div className="flex items-center gap-5 flex-wrap">
@@ -102,6 +128,14 @@ export default function ShareDonut({ eyebrow, title, rows, colors }: ShareDonutP
           ))}
         </div>
       </div>
+      {expanded && (
+        <ChartExpandModal
+          eyebrow={eyebrow}
+          title={title}
+          rows={rows}
+          onClose={() => setExpanded(false)}
+        />
+      )}
     </div>
   );
 }

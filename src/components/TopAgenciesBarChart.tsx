@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   BarChart,
   Bar,
@@ -11,6 +12,7 @@ import {
 } from "recharts";
 import { AgencySummary } from "@/lib/types";
 import { formatCurrency } from "@/lib/data-utils";
+import ChartExpandModal from "./ChartExpandModal";
 
 function shortName(name: string): string {
   if (name.length <= 22) return name;
@@ -18,7 +20,9 @@ function shortName(name: string): string {
 }
 
 export default function TopAgenciesBarChart({ agencies }: { agencies: AgencySummary[] }) {
-  const top = [...agencies].sort((a, b) => b.totalSpend - a.totalSpend).slice(0, 8);
+  const [expanded, setExpanded] = useState(false);
+  const sortedAll = [...agencies].sort((a, b) => b.totalSpend - a.totalSpend);
+  const top = sortedAll.slice(0, 8);
   const data = top.map((a) => ({
     name: shortName(a.name),
     fullName: a.name,
@@ -27,17 +31,40 @@ export default function TopAgenciesBarChart({ agencies }: { agencies: AgencySumm
   }));
 
   return (
-    <div className="col-span-12 lg:col-span-7 bg-surface-container-lowest border border-outline-variant rounded-[14px] p-5 md:p-6">
-      <div className="mb-4">
-        <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-on-surface-variant mb-0.5">
-          Agency Spend
+    <div
+      onClick={() => setExpanded(true)}
+      className="col-span-12 lg:col-span-7 bg-surface-container-lowest border border-outline-variant rounded-[14px] p-5 md:p-6 cursor-pointer transition-colors hover:border-[oklch(0.88_0.007_85)]"
+      title="Click to see every agency"
+    >
+      <div className="mb-4 flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-on-surface-variant mb-0.5">
+            Agency Spend
+          </div>
+          <div className="font-headline font-semibold text-[22px] leading-tight tracking-[-0.015em] text-primary">
+            Top agencies by contract value
+          </div>
+          <p className="text-[12px] text-on-surface-variant mt-1">
+            {data.length} of {sortedAll.length.toLocaleString()} agencies shown — click to expand
+          </p>
         </div>
-        <div className="font-headline font-semibold text-[22px] leading-tight tracking-[-0.015em] text-primary">
-          Top agencies by contract value
-        </div>
-        <p className="text-[12px] text-on-surface-variant mt-1">
-          {data.length} agencies shown, sorted by total spend
-        </p>
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            setExpanded(true);
+          }}
+          aria-label="Expand all agencies"
+          className="shrink-0 inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-[0.1em] text-on-surface-variant hover:text-primary px-2 py-1 rounded-full"
+        >
+          Expand
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M15 3h6v6" />
+            <path d="M9 21H3v-6" />
+            <path d="M21 3l-7 7" />
+            <path d="M3 21l7-7" />
+          </svg>
+        </button>
       </div>
       <div className="h-[320px] w-full">
         <ResponsiveContainer width="100%" height="100%">
@@ -106,6 +133,14 @@ export default function TopAgenciesBarChart({ agencies }: { agencies: AgencySumm
           Renewal window
         </span>
       </div>
+      {expanded && (
+        <ChartExpandModal
+          eyebrow="Agency Spend"
+          title="All agencies by contract value"
+          rows={sortedAll.map((a) => ({ name: a.name, value: a.totalSpend }))}
+          onClose={() => setExpanded(false)}
+        />
+      )}
     </div>
   );
 }
