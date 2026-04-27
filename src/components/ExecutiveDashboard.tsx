@@ -539,7 +539,10 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
           agencies={allAgencies}
           onAgencyClick={(name) => setDrill({ kind: "agency", value: name })}
         />
-        <CompetitorsTable transactions={filteredTransactions} />
+        <CompetitorsTable
+          transactions={filteredTransactions}
+          onVendorClick={(name) => setDrill({ kind: "vendor", value: name })}
+        />
       </div>
 
       <div className="grid grid-cols-12 gap-4">

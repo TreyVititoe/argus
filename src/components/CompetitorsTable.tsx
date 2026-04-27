@@ -7,7 +7,12 @@ import { summarizeByVendor, formatCurrency } from "@/lib/data-utils";
 type SortKey = "name" | "spend" | "share" | "txns";
 type SortDir = "asc" | "desc";
 
-export default function CompetitorsTable({ transactions }: { transactions: Transaction[] }) {
+interface CompetitorsTableProps {
+  transactions: Transaction[];
+  onVendorClick?: (name: string) => void;
+}
+
+export default function CompetitorsTable({ transactions, onVendorClick }: CompetitorsTableProps) {
   const [sortKey, setSortKey] = useState<SortKey>("spend");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
 
@@ -53,6 +58,9 @@ export default function CompetitorsTable({ transactions }: { transactions: Trans
           Competitor Landscape
         </div>
         <div className="font-headline font-semibold text-[22px] leading-tight tracking-[-0.015em] text-primary">Spend share by vendor</div>
+        {onVendorClick && (
+          <p className="text-[12px] text-on-surface-variant mt-1">Click a row to drill the dashboard into that vendor</p>
+        )}
       </div>
 
       <div className="overflow-y-auto max-h-[320px]">
@@ -67,7 +75,14 @@ export default function CompetitorsTable({ transactions }: { transactions: Trans
           </thead>
           <tbody className="divide-y divide-[var(--line)]">
             {sorted.map((r) => (
-              <tr key={r.name} className="hover:bg-surface-container-low transition-colors">
+              <tr
+                key={r.name}
+                onClick={onVendorClick ? () => onVendorClick(r.name) : undefined}
+                className={`transition-colors ${
+                  onVendorClick ? "cursor-pointer hover:bg-surface-container-low" : "hover:bg-surface-container-low"
+                }`}
+                title={onVendorClick ? `Filter dashboard to ${r.name}` : undefined}
+              >
                 <td className="px-4 py-2.5 text-[13px] text-primary font-medium whitespace-nowrap">
                   <div className="flex items-center gap-2">
                     <span
