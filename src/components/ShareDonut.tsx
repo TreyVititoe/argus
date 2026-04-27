@@ -15,9 +15,11 @@ interface ShareDonutProps {
   title: string;
   rows: ShareDonutRow[];
   colors: string[];
+  // Click a non-Other slice to drill the dashboard down to that entry.
+  onSliceClick?: (name: string) => void;
 }
 
-export default function ShareDonut({ eyebrow, title, rows, colors }: ShareDonutProps) {
+export default function ShareDonut({ eyebrow, title, rows, colors, onSliceClick }: ShareDonutProps) {
   const [expanded, setExpanded] = useState(false);
   const sorted = [...rows].sort((a, b) => b.value - a.value);
   const top = sorted.slice(0, 5);
@@ -28,9 +30,7 @@ export default function ShareDonut({ eyebrow, title, rows, colors }: ShareDonutP
 
   return (
     <div
-      onClick={() => setExpanded(true)}
-      className="col-span-12 lg:col-span-6 bg-surface-container-lowest border border-outline-variant rounded-[14px] p-5 md:p-6 cursor-pointer transition-colors hover:border-[oklch(0.88_0.007_85)]"
-      title="Click to see every entry"
+      className="col-span-12 lg:col-span-6 bg-surface-container-lowest border border-outline-variant rounded-[14px] p-5 md:p-6 transition-colors"
     >
       <div className="mb-4 flex items-start justify-between gap-3">
         <div className="min-w-0">
@@ -74,6 +74,12 @@ export default function ShareDonut({ eyebrow, title, rows, colors }: ShareDonutP
                 dataKey="value"
                 stroke="none"
                 isAnimationActive
+                onClick={(slice) => {
+                  const name = (slice as { name?: string })?.name;
+                  if (!onSliceClick || !name || name === "Other") return;
+                  onSliceClick(name);
+                }}
+                style={onSliceClick ? { cursor: "pointer" } : undefined}
               >
                 {data.map((_, i) => (
                   <Cell key={i} fill={colors[i % colors.length]} />
@@ -111,21 +117,31 @@ export default function ShareDonut({ eyebrow, title, rows, colors }: ShareDonutP
         </div>
 
         <div className="flex-1 min-w-[160px] space-y-1.5">
-          {data.map((d, i) => (
-            <div key={d.name} className="flex items-center gap-2 text-[13px]">
-              <span
-                className="inline-block w-2.5 h-2.5 rounded-sm shrink-0"
-                style={{ background: colors[i % colors.length] }}
-                aria-hidden
-              />
-              <span className="text-primary truncate flex-1" title={d.name}>
-                {d.name}
-              </span>
-              <span className="text-on-surface-variant tabular-nums">
-                {((d.value / total) * 100).toFixed(0)}%
-              </span>
-            </div>
-          ))}
+          {data.map((d, i) => {
+            const drillable = !!onSliceClick && d.name !== "Other";
+            return (
+              <button
+                key={d.name}
+                type="button"
+                disabled={!drillable}
+                onClick={() => drillable && onSliceClick?.(d.name)}
+                className={`w-full flex items-center gap-2 text-[13px] text-left rounded px-1 -mx-1 ${
+                  drillable ? "cursor-pointer hover:bg-surface-container/50" : "cursor-default"
+                }`}
+                title={drillable ? `Filter dashboard to ${d.name}` : undefined}
+              >
+                <span
+                  className="inline-block w-2.5 h-2.5 rounded-sm shrink-0"
+                  style={{ background: colors[i % colors.length] }}
+                  aria-hidden
+                />
+                <span className="text-primary truncate flex-1">{d.name}</span>
+                <span className="text-on-surface-variant tabular-nums">
+                  {((d.value / total) * 100).toFixed(0)}%
+                </span>
+              </button>
+            );
+          })}
         </div>
       </div>
       {expanded && (

@@ -73,6 +73,7 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
   const isOnlyFL = selectedStates.length === 1 && selectedStates[0] === "FL";
   const [opportunityFilter, setOpportunityFilter] = useState<"all" | "expiring" | "active" | "dormant">("all");
   const [hideMicrosoft, setHideMicrosoft] = useState(false);
+  const [drill, setDrill] = useState<{ kind: "reseller" | "vendor" | "agency"; value: string } | null>(null);
   const opportunitiesRef = useRef<HTMLDivElement>(null);
 
   const handleViewAllOpportunities = () => {
@@ -92,6 +93,7 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
     setSelectedRegion("all");
     setOpportunityFilter("all");
     setHideMicrosoft(false);
+    setDrill(null);
   });
 
   const filteredTransactions = useMemo(() => {
@@ -108,6 +110,17 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
     if (isOnlyFL && selectedRegion !== "all") {
       base = base.filter((t) => getRegion(t.agency, t.stateCode) === selectedRegion);
     }
+    if (drill) {
+      if (drill.kind === "reseller") {
+        const v = drill.value.toLowerCase();
+        // Reseller donut compresses names to first two words; match by prefix.
+        base = base.filter((t) => t.company.toLowerCase().startsWith(v));
+      } else if (drill.kind === "vendor") {
+        base = base.filter((t) => t.competitor === drill.value);
+      } else if (drill.kind === "agency") {
+        base = base.filter((t) => t.agency === drill.value);
+      }
+    }
     if (!search.trim()) return base;
     const q = search.toLowerCase();
     return base.filter(
@@ -116,7 +129,7 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
         t.company.toLowerCase().includes(q) ||
         t.keyword.toLowerCase().includes(q)
     );
-  }, [search, yearMin, yearMax, selectedStates, selectedRegion, hideMicrosoft, isOnlyFL]);
+  }, [search, yearMin, yearMax, selectedStates, selectedRegion, hideMicrosoft, isOnlyFL, drill]);
 
   const handleStateToggle = (code: string) => {
     setSelectedStates((prev) =>
@@ -177,6 +190,32 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
 
   return (
     <AppShell search={search} onSearchChange={setSearch}>
+      {drill && (
+        <div
+          className="sticky top-2 z-30 mb-4 flex items-center justify-between gap-3 rounded-full border px-4 py-2 shadow-md backdrop-blur"
+          style={{
+            background: "var(--accent-bg)",
+            borderColor: "var(--accent)",
+            color: "var(--accent)",
+          }}
+        >
+          <span className="text-[12px] font-semibold truncate">
+            Drilling into {drill.kind}: <span className="font-bold">{drill.value}</span>
+          </span>
+          <button
+            type="button"
+            onClick={() => setDrill(null)}
+            className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-bold text-white transition-transform hover:-translate-y-0.5"
+            style={{ background: "var(--accent)" }}
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 7v6h6" />
+              <path d="M21 17a9 9 0 0 0-15-6.7L3 13" />
+            </svg>
+            Undo
+          </button>
+        </div>
+      )}
       <div className="grid grid-cols-12 gap-4 lg:items-end mb-5">
         <div className="col-span-12 lg:col-span-8 flex flex-col gap-4">
           <PageHeader
@@ -437,12 +476,14 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
             value: c.totalSpend,
           }))}
           colors={SHARE_COLORS}
+          onSliceClick={(name) => setDrill({ kind: "reseller", value: name })}
         />
         <ShareDonut
           eyebrow="Competitor share"
           title="Top vendors by spend"
           rows={allVendors.map((v) => ({ name: v.name, value: v.totalSpend }))}
           colors={SHARE_COLORS}
+          onSliceClick={(name) => setDrill({ kind: "vendor", value: name })}
         />
       </div>
 
@@ -456,7 +497,10 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
       </div>
 
       <div className="grid grid-cols-12 gap-4 mb-5">
-        <TopAgenciesBarChart agencies={allAgencies} />
+        <TopAgenciesBarChart
+          agencies={allAgencies}
+          onAgencyClick={(name) => setDrill({ kind: "agency", value: name })}
+        />
         <CompetitorsTable transactions={filteredTransactions} />
       </div>
 
