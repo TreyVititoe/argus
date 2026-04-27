@@ -58,13 +58,12 @@ export default function DiscoveryView() {
     }
     if (search.trim()) {
       const q = search.toLowerCase();
-      result = result.filter(
-        (t) =>
-          t.agency.toLowerCase().includes(q) ||
-          t.company.toLowerCase().includes(q) ||
-          (t.competitor || "").toLowerCase().includes(q) ||
-          t.description.toLowerCase().includes(q) ||
-          t.keyword.toLowerCase().includes(q)
+      // Coerce defensively — a handful of source rows have non-string description
+      // values (e.g. a numeric PO), which would crash .toLowerCase() and blank the page.
+      result = result.filter((t) =>
+        [t.agency, t.company, t.competitor, t.description, t.keyword].some((v) =>
+          String(v ?? "").toLowerCase().includes(q)
+        )
       );
     }
     const sorted = [...result];
