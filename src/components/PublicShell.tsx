@@ -13,16 +13,31 @@ function BrandMark() {
   );
 }
 
+const HEADER_LINKS: { label: string; href: string }[] = [
+  { label: "Why Argus", href: "/why-argus" },
+  { label: "For sales leaders", href: "/for-sales-leaders" },
+  { label: "For reps", href: "/for-reps" },
+  { label: "FAQ", href: "/faq" },
+  { label: "Pricing", href: "/pricing" },
+];
+
 export function PublicHeader() {
   return (
-    <header className="flex items-center justify-between px-8 md:px-12 py-6">
-      <Link href="/" className="flex items-center gap-3">
+    <header className="flex items-center justify-between gap-6 px-8 md:px-12 py-6">
+      <Link href="/" className="flex items-center gap-3 shrink-0">
         <BrandMark />
         <span className="text-[18px] font-semibold tracking-tight">Argus</span>
       </Link>
+      <nav className="hidden lg:flex items-center gap-7 flex-1 justify-center text-[14px] font-medium" style={{ color: "var(--ink-2)" }}>
+        {HEADER_LINKS.map((l) => (
+          <Link key={l.href} href={l.href} className="hover:text-primary transition-colors">
+            {l.label}
+          </Link>
+        ))}
+      </nav>
       <Link
         href="/login"
-        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-[10px] text-[14px] font-bold text-white"
+        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-[10px] text-[14px] font-bold text-white shrink-0"
         style={{ background: "oklch(0.68 0.07 160)" }}
       >
         Sign In
