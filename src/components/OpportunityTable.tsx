@@ -111,6 +111,13 @@ const OpportunityTable = forwardRef<HTMLDivElement, OpportunityTableProps>(funct
     return c;
   }, [agencies]);
 
+  // Export should match what the user is actually looking at — narrow the
+  // transactions to those whose agency is in the currently filtered set.
+  const exportTransactions = useMemo(() => {
+    const names = new Set(filtered.map((a) => a.name));
+    return transactions.filter((t) => names.has(t.agency));
+  }, [filtered, transactions]);
+
   const maxSpend = Math.max(...filtered.map((a) => a.totalSpend), 1);
 
   const displayed = showAll ? filtered : filtered.slice(0, 50);
@@ -159,7 +166,7 @@ const OpportunityTable = forwardRef<HTMLDivElement, OpportunityTableProps>(funct
           />
         </div>
 
-        <ExportButton transactions={transactions} />
+        <ExportButton transactions={exportTransactions} />
 
         {/* Filter pills */}
         <div className="flex items-center gap-1 overflow-x-auto shrink-0">
