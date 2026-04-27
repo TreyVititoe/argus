@@ -1,0 +1,28 @@
+{
+  "expo": {
+    "name": "Argus",
+    "slug": "argus",
+    "scheme": "argus",
+    "version": "0.0.1",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.argus.mobile"
+    },
+    "android": {
+      "package": "com.argus.mobile"
+    },
+    "web": {
+      "bundler": "metro"
+    },
+    "plugins": ["expo-router"],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "supabaseUrl": "https://horovpvgimtbbeuvzgpd.supabase.co"
+    }
+  }
+}
