@@ -23,8 +23,8 @@ export default function InsightPanel({ expiringCount, expiringValue, onViewAll }
       </p>
       <button
         onClick={onViewAll}
-        className="mt-auto w-full inline-flex items-center justify-center gap-2 py-3.5 px-5 rounded-[10px] text-white text-[14px] font-medium transition-transform hover:-translate-y-0.5"
-        style={{ background: "var(--ink)" }}
+        className="mt-auto w-full inline-flex items-center justify-center gap-2 py-3.5 px-5 rounded-[10px] text-white text-[14px] font-bold transition-transform hover:-translate-y-0.5"
+        style={{ background: "oklch(0.50 0.10 160)" }}
       >
         View all opportunities →
       </button>
