@@ -105,14 +105,6 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
               </Link>
             );
           })}
-          <Link
-            href={hrefFor("glossary")}
-            onClick={onClose}
-            className={`${styles.navItem} ${isActive("glossary") ? styles.active : ""}`}
-          >
-            <span className={styles.dot} />
-            Glossary
-          </Link>
         </nav>
 
         <Link href={hrefFor("discovery")} onClick={onClose} className={styles.newAnalysis}>
@@ -142,6 +134,13 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
             }
             return link;
           })}
+          <Link
+            href={hrefFor("glossary")}
+            onClick={onClose}
+            className={`${styles.footerLink} ${isActive("glossary") ? styles.active : ""}`}
+          >
+            Glossary
+          </Link>
         </div>
       </aside>
     </>
