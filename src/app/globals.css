@@ -237,3 +237,12 @@ body {
 [data-theme="dark"] {
   color-scheme: dark;
 }
+
+/* Loading skeletons */
+@keyframes skeletonPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+.skeleton-pulse {
+  animation: skeletonPulse 1.6s ease-in-out infinite;
+}

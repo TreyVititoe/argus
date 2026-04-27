@@ -345,30 +345,35 @@ export default function ExecutiveDashboard({ company }: { company?: string } = {
           value={formatCurrency(totalSpend)}
           delta={yoyGrowth >= 0 ? `+${yoyGrowth.toFixed(0)}%` : `${yoyGrowth.toFixed(0)}%`}
           deltaType={yoyGrowth >= 0 ? "positive" : "negative"}
+          tooltip="Sum of all contract line items in the current filter (year + state + region + search). Delta is year-over-year change between 2024 and 2023 within the filter."
         />
         <KpiStat
           label="Expiring Contracts"
           value={String(expiringStats.count)}
           delta={formatCurrency(expiringStats.totalValue)}
           deltaType="positive"
+          tooltip="Agencies whose last purchase was 3-5 years ago and whose total spend exceeds $10K. The dollar amount is their historical spend — your renewal-window opportunity size."
         />
         <KpiStat
           label="Active Agencies"
           value={String(activeCount)}
           delta={`${allAgencies.length} total`}
           deltaType="neutral"
+          tooltip="Agencies with at least one purchase in the last 2 years inside the current filter. Total includes active, expiring, and dormant agencies."
         />
         <KpiStat
           label="Top Reseller"
           value={allCompanies[0]?.name.split(/\s+/)[0] || "—"}
           delta={formatCurrency(allCompanies[0]?.totalSpend || 0)}
           deltaType="neutral"
+          tooltip="Channel partner (CDW-G, SHI, Insight Public Sector, etc.) with the highest spend across the current filter. Distinct from the underlying vendor."
         />
         <KpiStat
           label="Top Vendor"
           value={allVendors[0]?.name || "—"}
           delta={formatCurrency(allVendors[0]?.totalSpend || 0)}
           deltaType="neutral"
+          tooltip="Manufacturer / original-source competitor (e.g., Cohesity, Veeam, Rubrik) with the highest spend in the current filter."
         />
       </div>
 

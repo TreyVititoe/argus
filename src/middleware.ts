@@ -9,6 +9,17 @@ const PUBLIC_PATHS = new Set([
   "/security",
   "/privacy",
   "/terms",
+  "/dpa",
+  "/subprocessors",
+  "/aup",
+  "/sla",
+  "/status",
+  "/faq",
+  "/glossary",
+  "/why-argus",
+  "/for-sales-leaders",
+  "/for-reps",
+  "/opengraph-image",
 ]);
 
 // Reserved top-level segments that used to be flat routes; now nested under /[company]/.
