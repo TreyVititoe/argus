@@ -92,7 +92,7 @@ export default function GlossaryPage() {
             </p>
             <div className="rounded-[10px] overflow-hidden" style={{ background: "var(--bg)" }}>
               <Image
-                src="/florida-gov-structure.jpg?v=2"
+                src="/florida-gov-structure.jpg"
                 alt="Florida government org chart showing executive, judicial, legislative branches and how cabinet functions, executive agencies, and local government tie together."
                 width={3360}
                 height={2100}
