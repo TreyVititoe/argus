@@ -45,10 +45,35 @@ export default function GlossaryPage() {
         >
           Procurement, in plain language.
         </h1>
-        <p className="text-[17px] leading-relaxed mb-12 max-w-[680px]" style={{ color: "var(--ink-2)" }}>
+        <p className="text-[17px] leading-relaxed mb-10 max-w-[680px]" style={{ color: "var(--ink-2)" }}>
           Public-sector buying has its own vocabulary. If you&rsquo;re new to SLED sales, start
           here. If you aren&rsquo;t, send this to the rep you&rsquo;re onboarding.
         </p>
+
+        <figure
+          className="rounded-[14px] border p-4 bg-[var(--panel)] mb-12"
+          style={{ borderColor: "var(--line)" }}
+        >
+          <p className="text-[13px] mb-3" style={{ color: "var(--ink-3)" }}>
+            How a state government is structured — Florida (Office of Program Policy Analysis &amp;
+            Government Accountability, 2024).
+          </p>
+          <div className="rounded-[10px] overflow-hidden" style={{ background: "var(--bg)" }}>
+            <Image
+              src="/florida-gov-chart.jpg"
+              alt="Florida government org chart showing executive, judicial, legislative branches and how cabinet functions, executive agencies, and local government tie together."
+              width={3360}
+              height={2100}
+              sizes="(max-width: 920px) 100vw, 920px"
+              style={{ width: "100%", height: "auto", display: "block" }}
+            />
+          </div>
+          <figcaption className="text-[12px] mt-3" style={{ color: "var(--ink-4)" }}>
+            Knowing the buying layer matters when you&rsquo;re reading an award. State agencies,
+            cabinet functions, executive agencies, and local government each procure differently —
+            and the source of an award line tells you which playbook fits.
+          </figcaption>
+        </figure>
 
         <dl
           className="rounded-[14px] border bg-[var(--panel)] divide-y"
@@ -72,39 +97,6 @@ export default function GlossaryPage() {
             </div>
           ))}
         </dl>
-
-        <div className="mt-14">
-          <h2 className="font-semibold text-primary mb-3" style={{ fontSize: 22 }}>
-            How a state government is structured
-          </h2>
-          <p className="text-[15px] leading-[1.65] mb-4" style={{ color: "var(--ink-2)" }}>
-            Knowing the buying layer matters when you&rsquo;re reading an award. State agencies,
-            cabinet functions, executive agencies, and local government each procure differently —
-            and the source of an award line tells you which playbook fits.
-          </p>
-          <figure
-            className="rounded-[14px] border p-4 bg-[var(--panel)]"
-            style={{ borderColor: "var(--line)" }}
-          >
-            <p className="text-[13px] mb-3" style={{ color: "var(--ink-3)" }}>
-              Example: Florida government structure (Office of Program Policy Analysis &amp;
-              Government Accountability, 2024).
-            </p>
-            <div className="rounded-[10px] overflow-hidden" style={{ background: "var(--bg)" }}>
-              <Image
-                src="/florida-gov-structure.jpg"
-                alt="Florida government org chart showing executive, judicial, legislative branches and how cabinet functions, executive agencies, and local government tie together."
-                width={3360}
-                height={2100}
-                sizes="(max-width: 920px) 100vw, 920px"
-                style={{ width: "100%", height: "auto", display: "block" }}
-              />
-            </div>
-            <figcaption className="text-[12px] mt-3" style={{ color: "var(--ink-4)" }}>
-              Source: Florida Office of Program Policy Analysis &amp; Government Accountability, 2024.
-            </figcaption>
-          </figure>
-        </div>
       </section>
     </PublicShell>
   );
