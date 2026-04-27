@@ -1,0 +1,23 @@
+node_modules/
+.expo/
+dist/
+web-build/
+
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# macOS
+.DS_Store
+
+# Local env (but keep the example file as a template)
+.env
+.env.local
+!.env.local.example
