@@ -2,6 +2,12 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
 // Renders the Argus brand mark to the three PNGs Expo expects.
 // Run after the brand changes: `npm run icons` from mobile/.
+//
+// `sharp` is intentionally NOT a devDependency — its postinstall step
+// fails on EAS's macOS build runners (it tries to compile from source
+// when the prebuilt binary download misses), which broke production
+// builds. The npm script installs it transiently with --no-save so
+// nothing lingers in package.json or the lockfile.
 
 const sharp = require("sharp");
 const path = require("node:path");

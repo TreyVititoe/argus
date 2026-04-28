@@ -10,7 +10,7 @@
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
     "snapshot": "node scripts/build-snapshot.js",
-    "icons": "node scripts/build-icons.js"
+    "icons": "npm install --no-save sharp@^0.34.5 && node scripts/build-icons.js"
   },
   "dependencies": {
     "@expo/metro-runtime": "~55.0.0",
@@ -32,7 +32,6 @@
   },
   "devDependencies": {
     "@types/react": "~19.1.1",
-    "sharp": "^0.34.5",
     "typescript": "~5.8.3"
   }
 }
