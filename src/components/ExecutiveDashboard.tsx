@@ -1,15 +1,16 @@
 "use client";
 
 import { useState, useMemo, useRef } from "react";
+import { useParams } from "next/navigation";
 import { useClearFilters } from "@/lib/use-clear-filters";
-import { Transaction, StateInfo } from "@/lib/types";
+import { Transaction } from "@/lib/types";
 import {
   summarizeByAgency,
   summarizeByCompany,
   summarizeByVendor,
   formatCurrency,
 } from "@/lib/data-utils";
-import rawData from "@/lib/data.json";
+import { getDataset } from "@/lib/datasets";
 import AppShell from "./AppShell";
 import KpiStat from "./KpiStat";
 import SpendTrendChart from "./SpendTrendChart";
@@ -33,15 +34,8 @@ const SHARE_COLORS = [
 import PageHeader from "./PageHeader";
 import { getRegion, FL_REGIONS, Region } from "@/lib/regions";
 
-const allTransactions = (rawData.transactions as Transaction[]).filter(
-  (t) => t.competitor !== "Medical Platforms"
-);
-const allStates = rawData.states as StateInfo[];
-const allYears = Array.from(
-  new Set(allTransactions.map((t) => t.year).filter((y) => y > 0))
-).sort((a, b) => b - a);
-const MIN_YEAR = allYears[allYears.length - 1];
-const MAX_YEAR = allYears[0];
+// allTransactions / allStates / allYears are now read from the active dataset
+// inside the component, since they depend on the [dataset] URL segment.
 
 function formatCompany(slug: string): string {
   const known: Record<string, string> = {
@@ -61,7 +55,25 @@ function yearRangeLabel(yearMin: number | null, yearMax: number | null): string 
   return `through ${yearMax}`;
 }
 
-export default function ExecutiveDashboard({ company }: { company?: string } = {}) {
+export default function ExecutiveDashboard({ company, datasetSlug }: { company?: string; datasetSlug?: string } = {}) {
+  const params = useParams<{ dataset?: string }>();
+  const slug = datasetSlug ?? (params?.dataset as string | undefined);
+  const dataset = useMemo(() => getDataset(slug), [slug]);
+  const allTransactions = useMemo(
+    () => dataset.transactions.filter((t: Transaction) => t.competitor !== "Medical Platforms"),
+    [dataset]
+  );
+  const allStates = dataset.states;
+  const allYears = useMemo(
+    () =>
+      Array.from(new Set(allTransactions.map((t) => t.year).filter((y) => y > 0))).sort(
+        (a, b) => b - a
+      ),
+    [allTransactions]
+  );
+  const MIN_YEAR = allYears[allYears.length - 1];
+  const MAX_YEAR = allYears[0];
+
   const [search, setSearch] = useState("");
   const [yearMin, setYearMin] = useState<number | null>(null);
   const [yearMax, setYearMax] = useState<number | null>(null);

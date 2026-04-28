@@ -1,22 +1,18 @@
 "use client";
 
-import { StateInfo } from "@/lib/types";
-import rawData from "@/lib/data.json";
+import { useMemo } from "react";
+import { useParams } from "next/navigation";
 import AppShell from "./AppShell";
 import PageHeader from "./PageHeader";
 import { useSession } from "./SessionProvider";
 import { formatCurrency, CURRENT_YEAR } from "@/lib/data-utils";
-
-const states = rawData.states as StateInfo[];
-const stats = rawData.stats as {
-  totalTransactions: number;
-  totalSpend: number;
-  uniqueAgencies: number;
-  uniqueCompanies: number;
-  stateCount: number;
-};
+import { getDataset } from "@/lib/datasets";
 
 export default function SettingsView() {
+  const params = useParams<{ dataset?: string }>();
+  const dataset = useMemo(() => getDataset(params?.dataset as string | undefined), [params?.dataset]);
+  const states = dataset.states;
+  const stats = dataset.stats;
   const user = useSession();
   const displayName = user?.name || "—";
   const displayEmail = user?.email || "—";

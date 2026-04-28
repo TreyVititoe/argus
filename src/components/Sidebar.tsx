@@ -5,7 +5,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import styles from "./shell.module.css";
 import ThemeToggle from "./ThemeToggle";
+import DatasetSwitcher from "./DatasetSwitcher";
 import { dispatchClearFilters } from "@/lib/use-clear-filters";
+import { DEFAULT_DATASET, isValidDatasetSlug } from "@/lib/datasets";
 
 const DEFAULT_COMPANY = "cohesity";
 
@@ -23,11 +25,11 @@ const FOOTER_ITEMS: { label: string; sub: string }[] = [
   { label: "Help", sub: "help" },
 ];
 
-function companyFromPath(pathname: string): string {
-  // First non-empty segment is the company slug (unless it's a reserved page).
-  const seg = pathname.split("/").filter(Boolean)[0];
-  if (!seg || seg === "login") return DEFAULT_COMPANY;
-  return seg;
+function parsePath(pathname: string): { company: string; dataset: string } {
+  const segs = pathname.split("/").filter(Boolean);
+  const company = segs[0] && segs[0] !== "login" ? segs[0] : DEFAULT_COMPANY;
+  const dataset = isValidDatasetSlug(segs[1]) ? segs[1] : DEFAULT_DATASET;
+  return { company, dataset };
 }
 
 interface SidebarProps {
@@ -37,7 +39,7 @@ interface SidebarProps {
 
 export default function Sidebar({ open, onClose }: SidebarProps) {
   const pathname = usePathname();
-  const company = companyFromPath(pathname);
+  const { company, dataset } = parsePath(pathname);
 
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
@@ -46,12 +48,13 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
     };
   }, [open]);
 
-  const hrefFor = (sub: string | null) => (sub ? `/${company}/${sub}` : `/${company}`);
+  const hrefFor = (sub: string | null) =>
+    sub ? `/${company}/${dataset}/${sub}` : `/${company}/${dataset}`;
 
   const isActive = (sub: string | null) => {
     const target = hrefFor(sub);
     if (sub === null) {
-      // Dashboard = exact match on /{company}
+      // Dashboard = exact match on /{company}/{dataset}
       return pathname === target;
     }
     return pathname === target || pathname.startsWith(target + "/");
@@ -68,7 +71,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
         className={`${styles.sidebar} ${open ? styles.open : ""}`}
         aria-hidden={!open && typeof window !== "undefined" && window.innerWidth < 1024}
       >
-        <Link href={`/${company}`} onClick={onClose} className={styles.brand}>
+        <Link href={`/${company}/${dataset}`} onClick={onClose} className={styles.brand}>
           <span className={styles.brandMark} aria-hidden="true">
             <svg viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
               <rect width="128" height="128" rx="28" ry="28" fill="#4A7A67" />
@@ -92,6 +95,8 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
             <path d="m6 6 12 12" />
           </svg>
         </button>
+
+        <DatasetSwitcher onClose={onClose} />
 
         <nav className={styles.nav}>
           {NAV_ITEMS.map((item) => {

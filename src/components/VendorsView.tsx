@@ -1,17 +1,15 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useParams } from "next/navigation";
 import { useClearFilters } from "@/lib/use-clear-filters";
-import { Transaction, StateInfo } from "@/lib/types";
+import { Transaction } from "@/lib/types";
 import { formatCurrency } from "@/lib/data-utils";
-import rawData from "@/lib/data.json";
+import { getDataset } from "@/lib/datasets";
 import AppShell from "./AppShell";
 import PageHeader from "./PageHeader";
 import StateTabs from "./StateTabs";
 import MultiSelectDropdown from "./MultiSelectDropdown";
-
-const allTransactions = rawData.transactions as Transaction[];
-const allStates = rawData.states as StateInfo[];
 
 const YEARS = [2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025];
 
@@ -99,6 +97,11 @@ function MiniSparkline({ data }: { data: Record<number, number> }) {
 }
 
 export default function VendorsView() {
+  const params = useParams<{ dataset?: string }>();
+  const dataset = useMemo(() => getDataset(params?.dataset as string | undefined), [params?.dataset]);
+  const allTransactions: Transaction[] = dataset.transactions;
+  const allStates = dataset.states;
+
   const [search, setSearch] = useState("");
   const [selectedStates, setSelectedStates] = useState<string[]>([]);
   const [selectedYears, setSelectedYears] = useState<number[]>([]);
@@ -115,7 +118,7 @@ export default function VendorsView() {
       base = base.filter((t) => set.has(t.year));
     }
     return base;
-  }, [selectedStates, selectedYears]);
+  }, [allTransactions, selectedStates, selectedYears]);
 
   const toggleState = (code: string) =>
     setSelectedStates((prev) => (prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code]));
@@ -129,7 +132,7 @@ export default function VendorsView() {
     const s = new Set<number>();
     for (const t of allTransactions) if (t.year) s.add(t.year);
     return Array.from(s).sort((a, b) => a - b);
-  }, []);
+  }, [allTransactions]);
 
   const vendors = useMemo(() => {
     const all = summarizeVendors(filteredTx);
