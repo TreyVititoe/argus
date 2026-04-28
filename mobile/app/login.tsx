@@ -13,17 +13,17 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { supabase, tenantForEmail } from "@/lib/supabase";
 
-// Two-step OTP: email → 6-digit code. Mirrors the web magic-link flow but
-// uses the verify-with-token path which is friendlier on mobile (no deep
-// linking, no URL parsing on cold start).
+const QUICK_LOGIN_URL = "https://argus.bz/api/auth/quick-login";
+
+// Domain-trust sign-in: type your work email, the web's quick-login
+// endpoint validates the domain and mints a Supabase session token,
+// we apply it locally. No OTP, no email round-trip.
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
-  const [code, setCode] = useState("");
-  const [stage, setStage] = useState<"email" | "code">("email");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  async function sendCode() {
+  async function signIn() {
     setError(null);
     const trimmed = email.trim().toLowerCase();
     if (!tenantForEmail(trimmed)) {
@@ -31,37 +31,33 @@ export default function LoginScreen() {
       return;
     }
     setLoading(true);
-    const { error: err } = await supabase.auth.signInWithOtp({
-      email: trimmed,
-      options: { shouldCreateUser: true },
-    });
-    setLoading(false);
-    if (err) {
-      setError(err.message || "Couldn't send code. Try again.");
-      return;
+    try {
+      const res = await fetch(QUICK_LOGIN_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: trimmed }),
+      });
+      if (!res.ok) {
+        const data = (await res.json().catch(() => ({}))) as { error?: string };
+        setError(data.error || "Couldn't sign in. Try again.");
+        setLoading(false);
+        return;
+      }
+      const { token_hash } = (await res.json()) as { token_hash: string };
+      const { error: verifyErr } = await supabase.auth.verifyOtp({
+        token_hash,
+        type: "magiclink",
+      });
+      if (verifyErr) {
+        setError(verifyErr.message || "Couldn't sign in. Try again.");
+        setLoading(false);
+        return;
+      }
+      router.replace("/(tabs)/dashboard");
+    } catch {
+      setError("Network error — try again.");
+      setLoading(false);
     }
-    setStage("code");
-  }
-
-  async function verifyCode() {
-    setError(null);
-    const trimmedCode = code.trim();
-    if (trimmedCode.length < 6) {
-      setError("Enter the 6-digit code from your email.");
-      return;
-    }
-    setLoading(true);
-    const { error: err } = await supabase.auth.verifyOtp({
-      email: email.trim().toLowerCase(),
-      token: trimmedCode,
-      type: "email",
-    });
-    setLoading(false);
-    if (err) {
-      setError(err.message || "That code didn't work. Try again.");
-      return;
-    }
-    router.replace("/(tabs)/dashboard");
   }
 
   return (
@@ -72,49 +68,31 @@ export default function LoginScreen() {
       >
         <View style={styles.container}>
           <Text style={styles.eyebrow}>Sign in</Text>
-          <Text style={styles.title}>
-            {stage === "email" ? "Log in to Argus" : "Check your inbox"}
-          </Text>
+          <Text style={styles.title}>Log in to Argus</Text>
           <Text style={styles.subtitle}>
-            {stage === "email"
-              ? "Enter your work email. We'll send a 6-digit code."
-              : `We sent a code to ${email}. Enter it below.`}
+            Enter your work email. We&apos;ll sign you straight in.
           </Text>
 
-          {stage === "email" ? (
-            <TextInput
-              style={styles.input}
-              placeholder="you@company.com"
-              placeholderTextColor="#9A958A"
-              value={email}
-              onChangeText={setEmail}
-              autoCapitalize="none"
-              autoCorrect={false}
-              autoComplete="email"
-              keyboardType="email-address"
-              inputMode="email"
-              editable={!loading}
-              autoFocus
-            />
-          ) : (
-            <TextInput
-              style={[styles.input, styles.codeInput]}
-              placeholder="123456"
-              placeholderTextColor="#9A958A"
-              value={code}
-              onChangeText={(v) => setCode(v.replace(/\D/g, "").slice(0, 6))}
-              keyboardType="number-pad"
-              inputMode="numeric"
-              maxLength={6}
-              editable={!loading}
-              autoFocus
-            />
-          )}
+          <TextInput
+            style={styles.input}
+            placeholder="you@company.com"
+            placeholderTextColor="#9A958A"
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
+            autoCorrect={false}
+            autoComplete="email"
+            keyboardType="email-address"
+            inputMode="email"
+            editable={!loading}
+            autoFocus
+            onSubmitEditing={signIn}
+          />
 
           {error ? <Text style={styles.error}>{error}</Text> : null}
 
           <Pressable
-            onPress={stage === "email" ? sendCode : verifyCode}
+            onPress={signIn}
             disabled={loading}
             style={({ pressed }) => [
               styles.button,
@@ -124,24 +102,9 @@ export default function LoginScreen() {
             {loading ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={styles.buttonText}>
-                {stage === "email" ? "Send code" : "Verify and sign in"}
-              </Text>
+              <Text style={styles.buttonText}>Sign in</Text>
             )}
           </Pressable>
-
-          {stage === "code" ? (
-            <Pressable
-              onPress={() => {
-                setStage("email");
-                setCode("");
-                setError(null);
-              }}
-              style={styles.secondaryLink}
-            >
-              <Text style={styles.secondaryLinkText}>Use a different email</Text>
-            </Pressable>
-          ) : null}
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -188,12 +151,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#FBF8EE",
     marginBottom: 16,
   },
-  codeInput: {
-    textAlign: "center",
-    fontSize: 24,
-    letterSpacing: 8,
-    fontWeight: "600",
-  },
   button: {
     backgroundColor: "#1B1B14",
     paddingVertical: 14,
@@ -212,14 +169,5 @@ const styles = StyleSheet.create({
     color: "#A0341E",
     fontSize: 13,
     marginBottom: 12,
-  },
-  secondaryLink: {
-    marginTop: 16,
-    alignItems: "center",
-  },
-  secondaryLinkText: {
-    color: "#4A7A67",
-    fontSize: 13,
-    fontWeight: "500",
   },
 });
