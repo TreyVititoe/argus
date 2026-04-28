@@ -9,7 +9,6 @@ export default function LoginForm() {
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [sent, setSent] = useState(false);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -23,19 +22,32 @@ export default function LoginForm() {
 
     setSubmitting(true);
     try {
-      const supabase = getSupabaseBrowser();
-      const { error: signInError } = await supabase.auth.signInWithOtp({
-        email: trimmed,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-        },
+      // Domain-trust sign-in: server validates the domain, mints a Supabase
+      // session token, hands it back, we apply it. No email round-trip.
+      const res = await fetch("/api/auth/quick-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: trimmed }),
       });
-      if (signInError) {
-        setError(signInError.message || "Couldn't send the magic link. Try again.");
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setError(data.error || "Couldn't sign in. Try again.");
         setSubmitting(false);
         return;
       }
-      setSent(true);
+      const { token_hash, tenant } = (await res.json()) as { token_hash: string; tenant: string };
+      const supabase = getSupabaseBrowser();
+      const { error: verifyErr } = await supabase.auth.verifyOtp({
+        token_hash,
+        type: "magiclink",
+      });
+      if (verifyErr) {
+        setError(verifyErr.message || "Couldn't sign in. Try again.");
+        setSubmitting(false);
+        return;
+      }
+      // Hard navigation so the server-rendered shell sees the new cookie.
+      window.location.href = `/${tenant}`;
     } catch {
       setError("Network error — try again.");
       setSubmitting(false);
@@ -63,102 +75,68 @@ export default function LoginForm() {
       </header>
 
       <section className="flex-1 flex flex-col items-center justify-center px-6">
-        {sent ? (
-          <div className="w-full max-w-md rounded-[14px] border border-outline-variant bg-surface-container-lowest p-8 shadow-sm text-center">
-            <div
-              className="w-12 h-12 rounded-full mx-auto mb-5 flex items-center justify-center"
-              style={{ background: "var(--accent-bg)", color: "var(--accent)" }}
-            >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect width="20" height="16" x="2" y="4" rx="2" />
-                <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
-              </svg>
-            </div>
-            <h1 className="font-headline font-bold leading-[1.1] tracking-[-0.02em] text-[28px] mb-2">
-              Check your inbox.
-            </h1>
-            <p className="text-[14px] leading-relaxed mb-1" style={{ color: "var(--ink-3)" }}>
-              We sent a sign-in link to
-            </p>
-            <p className="text-[14px] font-semibold mb-6" style={{ color: "var(--ink)" }}>
-              {email}
-            </p>
-            <button
-              type="button"
-              onClick={() => {
-                setSent(false);
-                setSubmitting(false);
-              }}
-              className="text-[12px] font-medium hover:underline"
-              style={{ color: "var(--accent)" }}
-            >
-              Use a different email
-            </button>
-          </div>
-        ) : (
-          <form
-            onSubmit={onSubmit}
-            className="w-full max-w-md rounded-[14px] border border-outline-variant bg-surface-container-lowest p-8 shadow-sm"
+        <form
+          onSubmit={onSubmit}
+          className="w-full max-w-md rounded-[14px] border border-outline-variant bg-surface-container-lowest p-8 shadow-sm"
+        >
+          <div
+            className="text-[11px] font-semibold uppercase tracking-[0.14em] mb-3"
+            style={{ color: "var(--accent)" }}
           >
-            <div
-              className="text-[11px] font-semibold uppercase tracking-[0.14em] mb-3"
-              style={{ color: "var(--accent)" }}
-            >
-              Sign in
-            </div>
-            <h1 className="font-headline font-bold leading-[1.05] tracking-[-0.02em] text-[40px] mb-2">
-              Log in to your dashboard
-            </h1>
-            <p className="text-[14px] mb-6 leading-relaxed" style={{ color: "var(--ink-3)" }}>
-              Enter the work email you signed up with. We&apos;ll send a sign-in link.
-            </p>
+            Sign in
+          </div>
+          <h1 className="font-headline font-bold leading-[1.05] tracking-[-0.02em] text-[40px] mb-2">
+            Log in to your dashboard
+          </h1>
+          <p className="text-[14px] mb-6 leading-relaxed" style={{ color: "var(--ink-3)" }}>
+            Enter your work email. We&apos;ll sign you straight in.
+          </p>
 
-            <label className="block mb-4">
-              <span className="block text-[12px] font-medium mb-1.5" style={{ color: "var(--ink-3)" }}>
-                Work email
-              </span>
-              <input
-                autoFocus
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@company.com"
-                className="w-full px-4 py-3 rounded-[10px] border border-outline-variant bg-surface-container-lowest text-primary text-[14px] outline-none focus:border-[var(--accent-soft)] focus:shadow-[0_0_0_4px_var(--accent-bg)]"
-                disabled={submitting}
-              />
-            </label>
-
-            {error && (
-              <div
-                className="mb-4 rounded-[10px] border px-3 py-2.5 text-[13px]"
-                style={{
-                  borderColor: "oklch(0.55 0.18 25 / 0.3)",
-                  background: "oklch(0.96 0.03 25)",
-                  color: "oklch(0.45 0.15 25)",
-                }}
-              >
-                {error}
-              </div>
-            )}
-
-            <button
-              type="submit"
+          <label className="block mb-4">
+            <span className="block text-[12px] font-medium mb-1.5" style={{ color: "var(--ink-3)" }}>
+              Work email
+            </span>
+            <input
+              autoFocus
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@company.com"
+              className="w-full px-4 py-3 rounded-[10px] border border-outline-variant bg-surface-container-lowest text-primary text-[14px] outline-none focus:border-[var(--accent-soft)] focus:shadow-[0_0_0_4px_var(--accent-bg)]"
               disabled={submitting}
-              className="w-full inline-flex items-center justify-center gap-2 py-3 rounded-[10px] text-[15px] font-medium text-white disabled:opacity-60 transition-transform hover:-translate-y-0.5"
-              style={{ background: "var(--ink)" }}
-            >
-              {submitting ? "Sending link…" : "Send sign-in link"}
-            </button>
+            />
+          </label>
 
-            <p className="mt-6 text-[12px] text-center" style={{ color: "var(--ink-4)" }}>
-              New to Argus?{" "}
-              <a href="mailto:me@treyvititoe.com" className="hover:underline" style={{ color: "var(--accent)" }}>
-                Request access
-              </a>
-            </p>
-          </form>
-        )}
+          {error && (
+            <div
+              className="mb-4 rounded-[10px] border px-3 py-2.5 text-[13px]"
+              style={{
+                borderColor: "oklch(0.55 0.18 25 / 0.3)",
+                background: "oklch(0.96 0.03 25)",
+                color: "oklch(0.45 0.15 25)",
+              }}
+            >
+              {error}
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={submitting}
+            className="w-full inline-flex items-center justify-center gap-2 py-3 rounded-[10px] text-[15px] font-medium text-white disabled:opacity-60 transition-transform hover:-translate-y-0.5"
+            style={{ background: "var(--ink)" }}
+          >
+            {submitting ? "Signing in…" : "Sign in"}
+          </button>
+
+          <p className="mt-6 text-[12px] text-center" style={{ color: "var(--ink-4)" }}>
+            New to Argus?{" "}
+            <a href="mailto:me@treyvititoe.com" className="hover:underline" style={{ color: "var(--accent)" }}>
+              Request access
+            </a>
+          </p>
+        </form>
       </section>
 
       <footer className="px-8 md:px-12 py-6 text-[12px]" style={{ color: "var(--ink-4)" }}>
