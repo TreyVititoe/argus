@@ -8,6 +8,7 @@ import rawData from "@/lib/data.json";
 import AppShell from "./AppShell";
 import PageHeader from "./PageHeader";
 import StateTabs from "./StateTabs";
+import MultiSelectDropdown from "./MultiSelectDropdown";
 
 const allTransactions = rawData.transactions as Transaction[];
 const allStates = rawData.states as StateInfo[];
@@ -35,17 +36,35 @@ function MiniSparkline({ data }: { data: Record<number, number> }) {
 export default function CompaniesView() {
   const [search, setSearch] = useState("");
   const [selectedStates, setSelectedStates] = useState<string[]>([]);
+  const [selectedYears, setSelectedYears] = useState<number[]>([]);
   const [expanded, setExpanded] = useState<string | null>(null);
 
   const filteredTx = useMemo(() => {
-    if (selectedStates.length === 0) return allTransactions;
-    const set = new Set(selectedStates);
-    return allTransactions.filter((t) => set.has(t.stateCode));
-  }, [selectedStates]);
+    let base = allTransactions;
+    if (selectedStates.length > 0) {
+      const set = new Set(selectedStates);
+      base = base.filter((t) => set.has(t.stateCode));
+    }
+    if (selectedYears.length > 0) {
+      const set = new Set(selectedYears);
+      base = base.filter((t) => set.has(t.year));
+    }
+    return base;
+  }, [selectedStates, selectedYears]);
 
   const toggleState = (code: string) =>
     setSelectedStates((prev) => (prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code]));
   const clearStates = () => setSelectedStates([]);
+  const toggleYear = (v: string) => {
+    const y = Number(v);
+    setSelectedYears((prev) => (prev.includes(y) ? prev.filter((x) => x !== y) : [...prev, y]));
+  };
+
+  const allYears = useMemo(() => {
+    const s = new Set<number>();
+    for (const t of allTransactions) if (t.year) s.add(t.year);
+    return Array.from(s).sort((a, b) => a - b);
+  }, []);
 
   const companies = useMemo(() => {
     const summaries = summarizeByCompany(filteredTx);
@@ -63,6 +82,7 @@ export default function CompaniesView() {
   useClearFilters(() => {
     setSearch("");
     setSelectedStates([]);
+    setSelectedYears([]);
     setExpanded(null);
   });
 
@@ -87,13 +107,23 @@ export default function CompaniesView() {
         meta={`${companies.length} resellers · ${formatCurrency(totalSpend)} tracked spend`}
       />
 
-      <div className="mb-6">
+      <div className="mb-4">
           <StateTabs
             states={allStates}
             selected={selectedStates}
             onToggle={toggleState}
             onClear={clearStates}
             total={allTransactions.length}
+          />
+        </div>
+
+        <div className="mb-4 flex items-center flex-wrap gap-3">
+          <MultiSelectDropdown
+            label="Year"
+            options={allYears.map((y) => ({ value: String(y), label: String(y) }))}
+            selected={selectedYears.map(String)}
+            onToggle={toggleYear}
+            onClear={() => setSelectedYears([])}
           />
         </div>
 
