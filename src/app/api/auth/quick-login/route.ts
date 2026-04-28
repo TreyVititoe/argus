@@ -47,31 +47,40 @@ export async function POST(req: NextRequest) {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 
-  // generateLink upserts the user (creates if missing, no-op if present)
-  // and returns a magic-link URL with an embedded verification token.
-  // We pull the token out and hand it back to the client so it can call
-  // verifyOtp directly — no email is actually sent.
-  const { data, error } = await admin.auth.admin.generateLink({
+  // First-time sign-in path: create the user if they don't exist with
+  // email already confirmed, so generateLink({type:'magiclink'}) can
+  // produce a valid session token instead of erroring on an unknown
+  // email. createUser is idempotent enough — we ignore "already exists".
+  const { error: createErr } = await admin.auth.admin.createUser({
+    email,
+    email_confirm: true,
+  });
+  if (createErr && !/already (been )?registered|already exists/i.test(createErr.message)) {
+    console.error("createUser failed:", createErr);
+    return NextResponse.json(
+      { error: createErr.message || "Couldn't create user" },
+      { status: 500 }
+    );
+  }
+
+  // generateLink returns hashed_token directly. The earlier version
+  // pulled `?token=` out of the action_link URL, which has a `pkce_`
+  // prefix verifyOtp rejects with "Email link is invalid or has expired".
+  const { data, error: linkErr } = await admin.auth.admin.generateLink({
     type: "magiclink",
     email,
   });
 
-  if (error || !data?.properties?.action_link) {
-    console.error("generateLink failed:", error);
+  if (linkErr || !data?.properties?.hashed_token) {
+    console.error("generateLink failed:", linkErr);
     return NextResponse.json(
-      { error: error?.message || "Couldn't generate session" },
+      { error: linkErr?.message || "Couldn't generate session" },
       { status: 500 }
     );
   }
 
-  const linkUrl = new URL(data.properties.action_link);
-  const tokenHash = linkUrl.searchParams.get("token");
-  if (!tokenHash) {
-    return NextResponse.json(
-      { error: "Invalid action link" },
-      { status: 500 }
-    );
-  }
-
-  return NextResponse.json({ token_hash: tokenHash, tenant });
+  return NextResponse.json({
+    token_hash: data.properties.hashed_token,
+    tenant,
+  });
 }
