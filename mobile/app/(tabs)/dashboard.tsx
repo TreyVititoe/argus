@@ -2,6 +2,8 @@ import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import ScreenHeader from "@/components/ScreenHeader";
 import KpiTile from "@/components/KpiTile";
+import DonutChart from "@/components/DonutChart";
+import HorizontalBarChart from "@/components/HorizontalBarChart";
 import { colors } from "@/lib/theme";
 import { formatCurrency } from "@/lib/format";
 import { useSession } from "@/lib/session";
@@ -42,17 +44,21 @@ export default function DashboardTab() {
         </View>
 
         <Text style={styles.sectionTitle}>Top vendors by spend</Text>
-        <View style={styles.list}>
-          {s.topVendors.slice(0, 6).map((v, i) => (
-            <Row key={v.name} index={i + 1} primary={v.name} secondary={formatCurrency(v.spend)} />
-          ))}
+        <View style={styles.card}>
+          <DonutChart slices={s.topVendors.map((v) => ({ name: v.name, value: v.spend }))} />
         </View>
 
         <Text style={styles.sectionTitle}>Top resellers by spend</Text>
-        <View style={styles.list}>
-          {s.topCompanies.slice(0, 6).map((c, i) => (
-            <Row key={c.name} index={i + 1} primary={c.name} secondary={formatCurrency(c.spend)} />
-          ))}
+        <View style={styles.card}>
+          <DonutChart slices={s.topCompanies.map((c) => ({ name: c.name, value: c.spend }))} />
+        </View>
+
+        <Text style={styles.sectionTitle}>Top agencies by contract value</Text>
+        <View style={styles.card}>
+          <HorizontalBarChart
+            rows={s.topAgencies.map((a) => ({ name: a.name, value: a.spend }))}
+            topN={8}
+          />
         </View>
 
         <Text style={styles.sectionTitle}>States</Text>
@@ -96,6 +102,14 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     marginTop: 4,
     letterSpacing: -0.3,
+  },
+  card: {
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.line,
+    borderRadius: 14,
+    padding: 16,
+    marginBottom: 24,
   },
   list: {
     backgroundColor: colors.surface,
