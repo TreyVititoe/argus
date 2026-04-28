@@ -5,14 +5,24 @@
     "scheme": "argus",
     "version": "0.0.1",
     "orientation": "portrait",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#F2EBDD"
+    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.argus.mobile"
     },
     "android": {
-      "package": "com.argus.mobile"
+      "package": "com.argus.mobile",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#4A7A67"
+      }
     },
     "web": {
       "bundler": "metro"
