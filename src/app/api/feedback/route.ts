@@ -44,8 +44,31 @@ export async function POST(req: NextRequest) {
   });
 
   if (error) {
-    return NextResponse.json({ error: "Email failed to send" }, { status: 502 });
+    // Surface Resend's own message (e.g. "The argus.bz domain is not
+    // verified") so we can fix configuration issues from the UI without
+    // grepping Vercel logs.
+    const detail = (error as { message?: string })?.message ?? String(error);
+    console.error("Resend send failed:", error);
+    return NextResponse.json({ error: detail }, { status: 502 });
   }
 
   return NextResponse.json({ ok: true });
+}
+
+// GET /api/feedback acts as a config health check. Returns 200 with the
+// current FROM/TO and Resend reachability, or 503 with the missing piece.
+// Used to diagnose "Feedback is not configured" without running curl.
+export async function GET() {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    return NextResponse.json(
+      { ok: false, missing: ["RESEND_API_KEY"], from: FEEDBACK_FROM, to: FEEDBACK_TO },
+      { status: 503 }
+    );
+  }
+  return NextResponse.json({
+    ok: true,
+    from: FEEDBACK_FROM,
+    to: FEEDBACK_TO,
+  });
 }
