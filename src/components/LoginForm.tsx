@@ -132,7 +132,7 @@ export default function LoginForm() {
 
           <p className="mt-6 text-[12px] text-center" style={{ color: "var(--ink-4)" }}>
             New to Argus?{" "}
-            <a href="mailto:me@treyvititoe.com" className="hover:underline" style={{ color: "var(--accent)" }}>
+            <a href="mailto:support@argus.bz" className="hover:underline" style={{ color: "var(--accent)" }}>
               Request access
             </a>
           </p>

@@ -60,7 +60,7 @@ export default function FeedbackView() {
             Thanks — got it.
           </h3>
           <p className="text-[14px] text-on-surface-variant mb-5">
-            Your note went straight to Trey&apos;s inbox. Expect a reply if it&apos;s a question.
+            Your note is in. Expect a reply if it&apos;s a question.
           </p>
           <button
             type="button"

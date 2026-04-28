@@ -36,7 +36,7 @@ const QA: { q: string; a: string }[] = [
   },
   {
     q: "How do I get my team set up?",
-    a: "Email me@treyvititoe.com with the rough shape of your territory. We'll book a scoping call, stand up your tenant within a day, and have your reps in a ranked target list by the end of the first week.",
+    a: "Email support@argus.bz with the rough shape of your territory. We'll book a scoping call, stand up your tenant within a day, and have your reps in a ranked target list by the end of the first week.",
   },
   {
     q: "Is there a free trial?",
@@ -66,8 +66,8 @@ export default function FAQPage() {
         </h1>
         <p className="text-[17px] leading-relaxed mb-12" style={{ color: "var(--ink-2)" }}>
           If yours isn&rsquo;t here, write me at{" "}
-          <a href="mailto:me@treyvititoe.com" style={{ color: "var(--accent)" }} className="underline">
-            me@treyvititoe.com
+          <a href="mailto:support@argus.bz" style={{ color: "var(--accent)" }} className="underline">
+            support@argus.bz
           </a>
           . I usually reply within a business day.
         </p>

@@ -66,8 +66,8 @@ export default function StatusPage() {
         <p className="text-[15px] leading-[1.65]" style={{ color: "var(--ink-2)" }}>
           If you&rsquo;re seeing degraded performance or an outage that isn&rsquo;t reflected here,
           email{" "}
-          <a href="mailto:me@treyvititoe.com" style={{ color: "var(--accent)" }} className="underline">
-            me@treyvititoe.com
+          <a href="mailto:support@argus.bz" style={{ color: "var(--accent)" }} className="underline">
+            support@argus.bz
           </a>{" "}
           with the time, the URL, and (if you can grab it) a network screenshot.
         </p>

@@ -4,7 +4,7 @@ import { useState, forwardRef, useMemo } from "react";
 import { useClearFilters } from "@/lib/use-clear-filters";
 import { AgencySummary, ContractStatus, Transaction } from "@/lib/types";
 import { formatCurrency, CURRENT_YEAR } from "@/lib/data-utils";
-import ExportButton from "./ExportButton";
+// import ExportButton from "./ExportButton";
 
 type FilterMode = "all" | "expiring" | "active" | "dormant";
 
@@ -175,7 +175,7 @@ const OpportunityTable = forwardRef<HTMLDivElement, OpportunityTableProps>(funct
           />
         </div>
 
-        <ExportButton transactions={exportTransactions} />
+        {/* <ExportButton transactions={exportTransactions} /> */}
 
         {/* Filter pills */}
         <div className="flex items-center gap-1 overflow-x-auto shrink-0">

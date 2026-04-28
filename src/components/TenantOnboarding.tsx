@@ -60,7 +60,7 @@ export default function TenantOnboarding({ tenant }: { tenant: TenantConfig }) {
 
         <div className="flex items-center gap-3 flex-wrap">
           <a
-            href="mailto:me@treyvititoe.com?subject=Argus%20onboarding%20for%20{tenant.displayName}"
+            href="mailto:support@argus.bz?subject=Argus%20onboarding%20for%20{tenant.displayName}"
             className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-[10px] text-[14px] font-bold text-white"
             style={{ background: "oklch(0.68 0.07 160)" }}
           >

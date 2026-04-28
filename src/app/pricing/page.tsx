@@ -115,7 +115,7 @@ export default function PricingPage() {
               </p>
             </div>
             <a
-              href="mailto:me@treyvititoe.com?subject=Argus%20pricing%20inquiry"
+              href="mailto:support@argus.bz?subject=Argus%20pricing%20inquiry"
               className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-[10px] text-[15px] font-bold text-white transition-transform hover:-translate-y-0.5 shrink-0"
               style={{ background: "oklch(0.68 0.07 160)" }}
             >

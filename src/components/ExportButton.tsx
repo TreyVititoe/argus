@@ -147,8 +147,8 @@ export default function ExportButton({ transactions }: ExportButtonProps) {
             </h3>
             <p className="text-[13px] text-on-surface-variant mb-5 leading-relaxed">
               CSV export is gated by a password. Request one from{" "}
-              <a href="mailto:me@treyvititoe.com" className="text-[var(--accent)] underline">
-                me@treyvititoe.com
+              <a href="mailto:support@argus.bz" className="text-[var(--accent)] underline">
+                support@argus.bz
               </a>
               .
             </p>

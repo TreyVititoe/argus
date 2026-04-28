@@ -10,7 +10,7 @@ import { getDataset } from "@/lib/datasets";
 import AppShell from "./AppShell";
 import StateTabs from "./StateTabs";
 import PageHeader from "./PageHeader";
-import ExportButton from "./ExportButton";
+// import ExportButton from "./ExportButton";
 import MultiSelectDropdown from "./MultiSelectDropdown";
 
 type SortKey = "agency" | "state" | "year" | "vendor" | "keyword" | "amount";
@@ -212,9 +212,9 @@ export default function DiscoveryView() {
               </button>
             )}
 
-            <div className="ml-auto">
+            {/* <div className="ml-auto">
               <ExportButton transactions={filtered} />
-            </div>
+            </div> */}
           </div>
         </div>
 

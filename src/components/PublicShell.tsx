@@ -59,11 +59,11 @@ export function PublicFooter() {
               Procurement intelligence for the public sector.
             </p>
             <a
-              href="mailto:me@treyvititoe.com"
+              href="mailto:support@argus.bz"
               className="mt-3 inline-block text-[13px]"
               style={{ color: "var(--accent)" }}
             >
-              me@treyvititoe.com
+              support@argus.bz
             </a>
           </div>
           {FOOTER_COLS.map((col) => (

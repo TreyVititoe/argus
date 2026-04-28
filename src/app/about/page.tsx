@@ -24,8 +24,8 @@ export default function AboutPage() {
           We're a small team based in Florida with deep experience in public-sector enterprise
           sales. If you'd like to talk about your territory, your ICP, or how Argus could fit into
           your pipeline, write me directly at{" "}
-          <a href="mailto:me@treyvititoe.com" style={{ color: "var(--accent)" }} className="underline">
-            me@treyvititoe.com
+          <a href="mailto:support@argus.bz" style={{ color: "var(--accent)" }} className="underline">
+            support@argus.bz
           </a>
           .
         </p>

@@ -70,8 +70,8 @@ export default function PrivacyPage() {
         </h2>
         <p>
           You can request a copy of your data, or its deletion, at any time by emailing{" "}
-          <a href="mailto:me@treyvititoe.com" style={{ color: "var(--accent)" }} className="underline">
-            me@treyvititoe.com
+          <a href="mailto:support@argus.bz" style={{ color: "var(--accent)" }} className="underline">
+            support@argus.bz
           </a>
           .
         </p>

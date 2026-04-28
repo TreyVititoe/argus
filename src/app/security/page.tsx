@@ -56,8 +56,8 @@ export default function SecurityPage() {
         </h2>
         <p>
           Found something? Email{" "}
-          <a href="mailto:me@treyvititoe.com" style={{ color: "var(--accent)" }} className="underline">
-            me@treyvititoe.com
+          <a href="mailto:support@argus.bz" style={{ color: "var(--accent)" }} className="underline">
+            support@argus.bz
           </a>{" "}
           with details. We'll respond within one business day.
         </p>

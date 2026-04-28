@@ -86,8 +86,8 @@ export default function SubprocessorsPage() {
 
         <p className="mt-10 text-[13px]" style={{ color: "var(--ink-3)" }}>
           Want notification when this list changes? Email{" "}
-          <a href="mailto:me@treyvititoe.com" style={{ color: "var(--accent)" }} className="underline">
-            me@treyvititoe.com
+          <a href="mailto:support@argus.bz" style={{ color: "var(--accent)" }} className="underline">
+            support@argus.bz
           </a>{" "}
           and we&rsquo;ll add you to the subprocessor change list.
         </p>

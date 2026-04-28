@@ -44,8 +44,8 @@ export default function AUPPage() {
         </h2>
         <p>
           Suspect a violation, or want to report something that looks off? Email{" "}
-          <a href="mailto:me@treyvititoe.com" style={{ color: "var(--accent)" }} className="underline">
-            me@treyvititoe.com
+          <a href="mailto:support@argus.bz" style={{ color: "var(--accent)" }} className="underline">
+            support@argus.bz
           </a>
           . We respond within one business day.
         </p>

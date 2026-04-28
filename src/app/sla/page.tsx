@@ -58,8 +58,8 @@ export default function SLAPage() {
         </h2>
         <p>
           Email{" "}
-          <a href="mailto:me@treyvititoe.com" style={{ color: "var(--accent)" }} className="underline">
-            me@treyvititoe.com
+          <a href="mailto:support@argus.bz" style={{ color: "var(--accent)" }} className="underline">
+            support@argus.bz
           </a>{" "}
           within 30 days of the affected month with the dates of the disruption. Credits are
           applied against your next invoice.

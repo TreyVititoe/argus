@@ -70,8 +70,8 @@ export default function TermsPage() {
         </h2>
         <p>
           Questions about these terms?{" "}
-          <a href="mailto:me@treyvititoe.com" style={{ color: "var(--accent)" }} className="underline">
-            me@treyvititoe.com
+          <a href="mailto:support@argus.bz" style={{ color: "var(--accent)" }} className="underline">
+            support@argus.bz
           </a>
           .
         </p>

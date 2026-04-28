@@ -410,7 +410,7 @@ export default function LandingPage() {
             <Link href="/security">Security</Link>
             <Link href="/privacy">Privacy</Link>
             <Link href="/terms">Terms</Link>
-            <a href="mailto:me@treyvititoe.com">Contact</a>
+            <a href="mailto:support@argus.bz">Contact</a>
           </div>
           <div>© {new Date().getFullYear()} Argus Intelligence</div>
         </div>

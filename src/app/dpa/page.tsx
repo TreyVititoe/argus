@@ -81,8 +81,8 @@ export default function DPAPage() {
           Customer may, on reasonable notice, audit Argus&apos;s compliance with this DPA. Argus
           will assist with data subject requests (access, deletion, portability) within 30 days of
           a written request to{" "}
-          <a href="mailto:me@treyvititoe.com" style={{ color: "var(--accent)" }} className="underline">
-            me@treyvititoe.com
+          <a href="mailto:support@argus.bz" style={{ color: "var(--accent)" }} className="underline">
+            support@argus.bz
           </a>
           .
         </p>
@@ -98,7 +98,7 @@ export default function DPAPage() {
 
         <p className="mt-10 text-[13px]" style={{ color: "var(--ink-4)" }}>
           This is a draft DPA intended to be reviewed by counsel before signature. Email
-          me@treyvititoe.com to request a counter-signature copy.
+          support@argus.bz to request a counter-signature copy.
         </p>
       </ProseSection>
     </PublicShell>

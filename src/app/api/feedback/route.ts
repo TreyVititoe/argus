@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 import { getSupabaseServer } from "@/lib/supabase/server";
 
-const FEEDBACK_TO = process.env.FEEDBACK_TO_EMAIL || "me@treyvititoe.com";
+const FEEDBACK_TO = process.env.FEEDBACK_TO_EMAIL || "support@argus.bz";
 const FEEDBACK_FROM = process.env.FEEDBACK_FROM_EMAIL || "Argus Feedback <feedback@argus.bz>";
 
 export async function POST(req: NextRequest) {
