@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useParams } from "next/navigation";
 import { useClearFilters } from "@/lib/use-clear-filters";
-import { Transaction, StateInfo } from "@/lib/types";
+import { Transaction } from "@/lib/types";
 import { formatCurrency, formatFullCurrency } from "@/lib/data-utils";
 import { getRegion, FL_REGIONS, Region } from "@/lib/regions";
-import rawData from "@/lib/data.json";
+import { getDataset } from "@/lib/datasets";
 import AppShell from "./AppShell";
 import StateTabs from "./StateTabs";
 import PageHeader from "./PageHeader";
@@ -15,10 +16,12 @@ import MultiSelectDropdown from "./MultiSelectDropdown";
 type SortKey = "agency" | "state" | "year" | "vendor" | "keyword" | "amount";
 type SortDir = "asc" | "desc";
 
-const allTransactions = rawData.transactions as Transaction[];
-const allStates = rawData.states as StateInfo[];
-
 export default function DiscoveryView() {
+  const params = useParams<{ dataset?: string }>();
+  const dataset = useMemo(() => getDataset(params?.dataset as string | undefined), [params?.dataset]);
+  const allTransactions: Transaction[] = dataset.transactions;
+  const allStates = dataset.states;
+
   const [search, setSearch] = useState("");
   const [selectedStates, setSelectedStates] = useState<string[]>([]);
   const [selectedYears, setSelectedYears] = useState<number[]>([]);
@@ -69,13 +72,13 @@ export default function DiscoveryView() {
     const s = new Set<string>();
     for (const t of allTransactions) if (t.keyword) s.add(t.keyword);
     return Array.from(s).sort();
-  }, []);
+  }, [allTransactions]);
 
   const years = useMemo(() => {
     const s = new Set<number>();
     for (const t of allTransactions) if (t.year) s.add(t.year);
     return Array.from(s).sort((a, b) => a - b);
-  }, []);
+  }, [allTransactions]);
 
   const filtered = useMemo(() => {
     let result = allTransactions;
@@ -119,7 +122,7 @@ export default function DiscoveryView() {
       return sortDir === "asc" ? cmp : -cmp;
     });
     return sorted;
-  }, [selectedStates, selectedRegion, includesFL, selectedYears, selectedKeywords, search, sortKey, sortDir]);
+  }, [allTransactions, selectedStates, selectedRegion, includesFL, selectedYears, selectedKeywords, search, sortKey, sortDir]);
 
   const totalSpend = filtered.reduce((s, t) => s + t.totalPrice, 0);
 

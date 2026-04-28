@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useParams } from "next/navigation";
 import { useClearFilters } from "@/lib/use-clear-filters";
 import {
   AreaChart,
@@ -19,16 +20,15 @@ import {
   Pie,
   Cell,
 } from "recharts";
-import { Transaction, StateInfo } from "@/lib/types";
+import { Transaction } from "@/lib/types";
 import { formatCurrency } from "@/lib/data-utils";
 import { getRegion, FL_REGIONS, Region } from "@/lib/regions";
-import rawData from "@/lib/data.json";
+import { getDataset } from "@/lib/datasets";
 import AppShell from "./AppShell";
 import PageHeader from "./PageHeader";
 import StateTabs from "./StateTabs";
 
-const allTransactions = rawData.transactions as Transaction[];
-const allStates = rawData.states as StateInfo[];
+// allTransactions / allStates come from the active dataset inside the component.
 
 const COLORS = [
   "oklch(0.50 0.08 160)",
@@ -77,6 +77,11 @@ function drillLabel(d: NonNullable<Drill>): string {
 }
 
 export default function AnalyticsView() {
+  const params = useParams<{ dataset?: string }>();
+  const dataset = useMemo(() => getDataset(params?.dataset as string | undefined), [params?.dataset]);
+  const allTransactions: Transaction[] = dataset.transactions;
+  const allStates = dataset.states;
+
   const [selectedStates, setSelectedStates] = useState<string[]>([]);
   const [selectedRegion, setSelectedRegion] = useState<Region | "all">("all");
   const [drill, setDrill] = useState<Drill>(null);
@@ -119,7 +124,7 @@ export default function AnalyticsView() {
       else if (drill.kind === "keyword") base = base.filter((t) => t.keyword === drill.value);
     }
     return base;
-  }, [selectedStates, selectedRegion, includesFL, drill]);
+  }, [allTransactions, selectedStates, selectedRegion, includesFL, drill]);
 
   const flRegionCounts = useMemo(() => {
     if (!includesFL) return null;
@@ -132,7 +137,7 @@ export default function AnalyticsView() {
       if (r) counts[r] = (counts[r] || 0) + 1;
     }
     return counts;
-  }, [includesFL]);
+  }, [allTransactions, includesFL]);
 
   const years = useMemo(() => {
     const s = new Set<number>();
