@@ -69,7 +69,7 @@ Now we have real `.ipa` / `.aab` files signed for the stores.
 ## 5. App Store Connect listing
 
 1. [appstoreconnect.apple.com](https://appstoreconnect.apple.com) → **My Apps** → **+**
-2. New iOS app with bundle ID `com.argus.mobile` (must match `app.json`)
+2. New iOS app with bundle ID `com.treyvititoe.argus` (must match `app.json`)
 3. Fill in:
    - **App information**: name "Argus", subtitle, primary category "Business"
    - **Privacy policy URL**: `https://argus.bz/privacy` (already shipped)
@@ -97,7 +97,7 @@ Apple review is typically 24-48h. Common rejection reasons here:
 ## 6. Google Play Console listing
 
 1. [play.google.com/console](https://play.google.com/console) → **Create app**
-2. Package name `com.argus.mobile` (must match `app.json`)
+2. Package name `com.treyvititoe.argus` (must match `app.json`)
 3. **Closed testing** track first: upload the production `.aab`, add a few
    testers' email addresses, submit. Google takes ~2-4 hours for review on the
    first submission.

@@ -180,7 +180,7 @@ For subsequent releases, write 1-3 user-visible changes in plain language:
 
 - [ ] App icons and splash screen exist (`mobile/assets/`)
 - [ ] `eas.json` checked in (already is)
-- [ ] `app.json` has the right bundle ID `com.argus.mobile`
+- [ ] `app.json` has the right bundle ID `com.treyvititoe.argus`
 - [ ] Production build via `eas build --profile production --platform ios`
       succeeded and produced an archive
 - [ ] Bundle ID matches App Store Connect listing
