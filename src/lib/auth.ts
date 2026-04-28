@@ -11,6 +11,9 @@ export type Session = {
 export const DOMAIN_TO_TENANT: Record<string, string> = {
   "cohesity.com": "cohesity",
   "treyvititoe.com": "cohesity",
+  // appreview@argus.bz is the App Store reviewer login. OTPs forward to
+  // me@treyvititoe.com via GoDaddy email forwarding.
+  "argus.bz": "cohesity",
 };
 
 export function tenantForEmail(email: string): string | null {
